@@ -1,5 +1,4 @@
 from data import Data
-from representation import Representation
 from referencegrouping import ReferenceGrouping
 from anomaly import Anomaly
 from datetime import datetime
@@ -7,7 +6,7 @@ import matplotlib.pylab as plt
 import pandas as pd
 
 class SelfMonitoring:
-    """Self monitoring for a group of units (machines)
+    '''Self monitoring for a group of units (machines)
     
     Parameters:
     ----------
@@ -31,10 +30,9 @@ class SelfMonitoring:
         
     dev_threshold : float
         Threshold in [0,1] on the deviation level
-    """
+    '''
     
-    def __init__(self, rep_type="stats", w_ref_group="7days", w_martingale=15, non_conformity="median", k=50, dev_threshold=.6):
-        self.rep_type = rep_type                # Type of data representations: "stats" or "hist"
+    def __init__(self, w_ref_group="7days", w_martingale=15, non_conformity="median", k=50, dev_threshold=.6):
         self.w_ref_group = w_ref_group          # Time window for the reference group
         self.w_martingale = w_martingale        # Window for computing deviation level
         self.non_conformity = non_conformity    # Strangeness (or non-conformity) measure: "median" or "knn"
@@ -42,27 +40,25 @@ class SelfMonitoring:
         self.dev_threshold = dev_threshold      # Threshold in [0,1] on the deviation level (to flag an anomaly)
         
         self.dffs = []
-        
-        self.rep = Representation(method=self.rep_type)
         self.ref = ReferenceGrouping(self.w_ref_group)
         self.anomaly = Anomaly(self.w_martingale, self.non_conformity, self.k)
     
     # ===========================================
-    def diagnoise(self, uid, dt, dfs):
+    def diagnoise(self, uid, dt, x_units):
         '''Diagnoise a test unit (identified by uid)
         Compute deviation level by comparing the data from the test unit against the reference group.
         
         Parameters:
         -----------
         uid : int
-            Index (in dfs) of the test unit to diagnoise. Must be in range(len(dfs)).
+            Index (in x_units) of the test unit to diagnoise. Must be in range(len(x_units)).
             
         dt : datetime
             Current datetime period
         
-        dfs : list
-            Each element of the list corresponds to one unit. The length of the list should be the number of units.
-            Each element in dfs is a DataFrame containing the data of the corresponding unit over a period of time (starting at dt).
+        x_units : array-like, shape (n_units, n_features)
+            Each element x_units[i] corresponds to a data-point from the i'th unit at time dt.
+            len(x_units) should correspond to the number of units.
         
         Returns:
         --------
@@ -79,7 +75,6 @@ class SelfMonitoring:
             True if the deviation is above the threshold (dev_threshold)
         '''
         
-        x_units = [ self.rep.extract(df.values) for df in dfs ]
         self._add_data_units(dt, x_units)
         
         x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
