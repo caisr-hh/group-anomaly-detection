@@ -1,8 +1,8 @@
-from data import Data
-from selfmonitoring import SelfMonitoring
+from cosmo.datasets import load_vehicles
+from cosmo.group_anomaly import SelfMonitoring
 
-# Simulates data generation from several units at each day ("1d")
-dataset = Data("./data/").load()
+# Streams data from several units (vehicles) over time
+dataset = load_vehicles()
 
 # Create an instance of SelfMonitoring
 sm = SelfMonitoring(w_ref_group="7days",        # Time window for the reference group
@@ -12,7 +12,7 @@ sm = SelfMonitoring(w_ref_group="7days",        # Time window for the reference 
                     dev_threshold=.6)           # Threshold on the deviation level
 
 # At each time dt, a data-point x_units[i] comes from the i'th unit
-for dt, x_units in dataset.getNext():
+for dt, x_units in dataset.stream():
     # diagnoise the selected test unit (at index 0)
     strangeness, pvalue, deviation, is_dev = sm.diagnoise(0, dt, x_units)
     

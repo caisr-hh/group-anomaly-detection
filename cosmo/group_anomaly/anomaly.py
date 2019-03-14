@@ -1,6 +1,6 @@
+from .strangeness import Strangeness
 import pandas as pd, numpy as np
 from sklearn.preprocessing import StandardScaler
-from strangeness import Strangeness
 
 class Anomaly:
     '''Online conformal anomaly detection with the martingale.

@@ -3,9 +3,23 @@ Self-Monitoring with a Group-based Anomaly Detection Approach.
 
 This is an implementation a group-based anomaly detection method. It allows to autonomously monitor a system (unit) that generates data over time, by comparing it against a group of other similar systems (units). It detects anomalies/deviations in a streaming fashion while accounting for concept drift which is due to external factors that can affect the data.
 
+# Install
+You can the package locally (for use on your system), with:
+```
+$ pip install .
+```
+
+You can also install the package with a symlink, so that changes to the source files will be immediately available to other users of the package on our system:
+```
+$ pip install -e .
+```
+
+# Usage
+Please check the examples in the *./examples* directory. Here is a brief explanation:
+
 First, you need to import `SelfMonitoring` and create an instance:
 ```python
-from selfmonitoring import SelfMonitoring
+from cosmo.group_anomaly import SelfMonitoring
 
 # Create an instance of SelfMonitoring
 sm = SelfMonitoring(w_ref_group="7days",        # Time window for the reference group
@@ -15,15 +29,18 @@ sm = SelfMonitoring(w_ref_group="7days",        # Time window for the reference 
                     dev_threshold=.6)           # Threshold on the deviation level
 ```
 
-An example data is provided in this repository under the folder ./data. It contains data from 19 units (vehicles). Each csv file corresponds to the data from one unit. To use the example data provided in this repository, you can import `Data` and load it as folows:
+An example of data is provided. It contains data from 19 units (consisting of vehicles). Each csv file contains data from one unit (vehicle). To use this example data, you can import the `load_vehicles` function from `cosmo.datasets` as folows:
 ```python
-from data import Data
+from cosmo.datasets import load_vehicles
 
-# Simulates data generation from several units at each day ("1d")
-dataset = Data("./data/").load()
+# Streams data from several units (vehicles) over time
+dataset = load_vehicles()
+
+# dataset.stream() can then be used as a generator
+# to simulate a stream (see example below)
 ```
 
-A streaming setting is considered where data (indicated as `x_units` in the exemple below) is received from the units at each time step `dt`. The method `SelfMonitoring.diagnoise(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `diagnoise` method returns:
+A streaming setting is considered where data (indicated as `x_units` in the example below) is received from the units at each time step `dt`. The method `SelfMonitoring.diagnoise(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `diagnoise` method returns:
 1. a *strangeness* score : the non-conformity of the test unit to the other units).
 2. a *p-value* (in [0, 1]) : the proportion of data from other units which are stranger than the test unit's data.
 3. an updated *devaliation* level (in [0, 1]) for the test unit.
@@ -32,7 +49,7 @@ A streaming setting is considered where data (indicated as `x_units` in the exem
 '''At each time dt, x_units contains data from all units.
 Each data-point x_units[i] comes from the i'th unit.'''
 
-for dt, x_units in dataset.getNext():
+for dt, x_units in dataset.stream():
     # diagnoise the selected test unit (at index 0)
     strangeness, pvalue, deviation, is_dev = sm.diagnoise(0, dt, x_units)
     

@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, dirname
 
-class Data:
+# ===================================================================================
+class DataCSVs:
     '''Helper class to read data from several units.
     The data of each unit is presented as a CSV file.
     '''
@@ -18,11 +19,11 @@ class Data:
             self.dfs.append(df)
             
         index = self.dfs[0].index
-        self.dates = index.union_many([ df.index for df in self.dfs ])#.to_pydatetime()
+        self.dates = index.union_many([ df.index for df in self.dfs ]).to_pydatetime()
         return self
         
     # -------------------------------------
-    def getNext(self):
+    def stream(self):
         for dt in self.dates:
             x_units = []
             for df in self.dfs:
@@ -31,4 +32,9 @@ class Data:
                 
             yield dt, x_units
             
-            
+# ===================================================================================
+def load_vehicles():
+    data_path = join(dirname(__file__), 'data', 'vehicles')
+    return DataCSVs(data_path).load()
+    
+    

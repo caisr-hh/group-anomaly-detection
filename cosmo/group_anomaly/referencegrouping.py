@@ -1,5 +1,4 @@
 import pandas as pd, numpy as np
-from strangeness import Strangeness
 
 class ReferenceGrouping:
     '''Construct reference groups
