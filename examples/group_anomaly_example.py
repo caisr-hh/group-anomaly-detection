@@ -14,7 +14,7 @@ ga = GroupAnomaly(  w_ref_group="7days",        # Time window for the reference 
 # At each time dt, a data-point x_units[i] comes from the i'th unit
 for dt, x_units in dataset.stream():
     # diagnoise the selected test unit (at index 0)
-    strangeness, pvalue, deviation, is_dev = ga.diagnoise(0, dt, x_units)
+    strangeness, pvalue, deviation, is_dev = ga.predict(0, dt, x_units)
     
     print("Time: {} ==> strangeness: {}, p-value: {}, deviation: {} ({})"
         .format(dt, strangeness, pvalue, deviation, "high" if is_dev else "low"))

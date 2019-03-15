@@ -40,7 +40,7 @@ dataset = load_vehicles()
 # to simulate a stream (see example below)
 ```
 
-A streaming setting is considered where data (indicated as `x_units` in the example below) is received from the units at each time step `dt`. The method `GroupAnomaly.diagnoise(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `diagnoise` method returns:
+A streaming setting is considered where data (indicated as `x_units` in the example below) is received from the units at each time step `dt`. The method `GroupAnomaly.predict(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `predict` method returns:
 1. a *strangeness* score : the non-conformity of the test unit to the other units).
 2. a *p-value* (in [0, 1]) : the proportion of data from other units which are stranger than the test unit's data.
 3. an updated *devaliation* level (in [0, 1]) for the test unit.
@@ -51,7 +51,7 @@ Each data-point x_units[i] comes from the i'th unit.'''
 
 for dt, x_units in dataset.stream():
     # diagnoise the selected test unit (at index 0)
-    strangeness, pvalue, deviation, is_dev = ga.diagnoise(0, dt, x_units)
+    strangeness, pvalue, deviation, is_dev = ga.predict(0, dt, x_units)
     
     print("Time: {} ==> strangeness: {}, p-value: {}, deviation: {} ({})"
         .format(dt, strangeness, pvalue, deviation, "high" if is_dev else "low"))

@@ -32,6 +32,13 @@ class DataCSVs:
                 
             yield dt, x_units
             
+    # -------------------------------------
+    def stream_unit(self, i):
+        for dt in self.dates:
+            df = self.dfs[i]
+            try: yield dt, df.loc[dt].values
+            except: pass
+            
 # ===================================================================================
 def load_vehicles():
     data_path = join(dirname(__file__), 'data', 'vehicles')
