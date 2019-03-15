@@ -1,1 +1,1 @@
-from .selfmonitoring import SelfMonitoring
+from .group_anomaly import GroupAnomaly

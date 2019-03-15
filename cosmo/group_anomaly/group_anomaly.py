@@ -1,10 +1,9 @@
-from .referencegrouping import ReferenceGrouping
-from .anomaly import Anomaly
+from .reference_grouping import ReferenceGrouping
+from cosmo.conformal import pvalue, martingale, Strangeness
 from datetime import datetime
-import matplotlib.pylab as plt
-import pandas as pd
+import pandas as pd, numpy as np, matplotlib.pylab as plt
 
-class SelfMonitoring:
+class GroupAnomaly:
     '''Self monitoring for a group of units (machines)
     
     Parameters:
@@ -40,7 +39,9 @@ class SelfMonitoring:
         
         self.dffs = []
         self.ref = ReferenceGrouping(self.w_ref_group)
-        self.anomaly = Anomaly(self.w_martingale, self.non_conformity, self.k)
+        
+        self.strg = Strangeness(non_conformity, k)
+        self.S, self.P, self.M = [], [], []
     
     # ===========================================
     def diagnoise(self, uid, dt, x_units):
@@ -75,25 +76,61 @@ class SelfMonitoring:
         '''
         
         self._add_data_units(dt, x_units)
-        
         x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
-        strangeness, pvalue, deviation = self.anomaly.deviation(x, Xref)
+        strangeness, pvalue, deviation = self.deviation(x, Xref)
         is_deviating = deviation > self.dev_threshold
         return (strangeness, pvalue, deviation, is_deviating)
+        
+    # ===========================================
+    def deviation(self, x, Xref):
+        '''Update the deviation level based on the new test sample x
+        
+        Parameters:
+        -----------
+        x : array-like, shape (n_features,)
+            New sample from the test unit (for which the strangeness, p-value and deviation-level are computed)
+        
+        Xref : array-like, shape (n_samples, n_features)
+            Samples from units in the reference group
+        
+        Returns:
+        --------
+        strangeness : float
+            Strangeness of x with respect to samples in Xref
+        
+        pval : float, in [0, 1]
+            p-value that represents the proportion of samples in Xref that are stranger than x.
+        
+        deviation : float, in [0, 1]
+            Normalized martingale-based deviation level updated based-on the last w_martingale steps
+        '''
+        self.strg = self.strg.fit(Xref)
+        scores = [ self.strg.get(xx) for xx in Xref ]
+        
+        strangeness = self.strg.get(x)
+        self.S.append(strangeness)
+        
+        pval = pvalue(strangeness, scores)
+        self.P.append(pval)
+        
+        deviation = martingale(self.P, self.w_martingale)
+        self.M.append(deviation)
+        
+        return strangeness, pval, deviation
         
     # ===========================================
     def plot_deviation(self):
         '''Plots the p-value and deviation level over time.
         '''
-        plt.scatter(range(len(self.anomaly.P)), self.anomaly.P)
-        plt.plot(range(len(self.anomaly.M)), self.anomaly.M)
+        plt.scatter(range(len(self.P)), self.P)
+        plt.plot(range(len(self.M)), self.M)
         plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
         plt.show()
         
     # ===========================================
     def _add_data_units(self, dt, x_units):
         '''Method for private use only
-        Appends the current data of all units (after representation) to dffs
+        Appends the current data of all units to dffs
         '''
         if self.dffs == []:
             self.dffs = [ self._df_append(None, dt, x) for x in x_units ]
