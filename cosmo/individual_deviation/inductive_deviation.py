@@ -1,5 +1,4 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
-from cosmo.exceptions import NotFitted
 import matplotlib.pylab as plt
 
 class InductiveDeviation:
@@ -70,16 +69,14 @@ class InductiveDeviation:
             Normalized deviation level updated based on the last w_martingale steps
         '''
         
-        if not self.strg.is_fitted():
-            raise NotFitted('fit(..) must be called at least once before predict(..)')
-
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
         
         pval = pvalue(strangeness, self.scores)
         self.P.append(pval)
         
-        deviation = martingale(self.P, self.w_martingale)
+        w = self.w_martingale
+        deviation = martingale(self.P[-w:])
         self.M.append(deviation)
         
         is_dev = deviation > self.dev_threshold

@@ -1,2 +1,2 @@
-class NotFitted(Exception):
-    pass
+class NotFitted(Exception): pass
+class InputValidationError(Exception): pass
