@@ -1,7 +1,7 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
 import matplotlib.pylab as plt
 
-class InductiveAnomaly:
+class InductiveDeviation:
     '''Self monitoring for a group of units (machines)
     
     Parameters:

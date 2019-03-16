@@ -1,9 +1,9 @@
 from .reference_grouping import ReferenceGrouping
-from cosmo.single_anomaly import InductiveAnomaly
+from cosmo.individual_deviation import InductiveDeviation
 from datetime import datetime
 import pandas as pd, numpy as np, matplotlib.pylab as plt
 
-class GroupAnomaly:
+class GroupDeviation:
     '''Self monitoring for a group of units (machines)
     
     Parameters:
@@ -35,7 +35,7 @@ class GroupAnomaly:
         
         self.dffs = []
         self.ref = ReferenceGrouping(self.w_ref_group)
-        self.inan = InductiveAnomaly(w_martingale=self.w_martingale,
+        self.indev = InductiveDeviation(w_martingale=self.w_martingale,
                                     non_conformity=self.non_conformity,
                                     k=self.k,
                                     dev_threshold=self.dev_threshold)
@@ -75,8 +75,8 @@ class GroupAnomaly:
         self._add_data_units(dt, x_units)
         x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
         
-        self.inan.fit(Xref)
-        strangeness, pvalue, deviation, is_deviating = self.inan.predict(x)
+        self.indev.fit(Xref)
+        strangeness, pvalue, deviation, is_deviating = self.indev.predict(x)
         
         return (strangeness, pvalue, deviation, is_deviating)
         
@@ -84,9 +84,9 @@ class GroupAnomaly:
     def plot_deviation(self):
         '''Plots the p-value and deviation level over time.
         '''
-        plt.scatter(range(len(self.inan.P)), self.inan.P)
-        plt.plot(range(len(self.inan.M)), self.inan.M)
-        plt.axhline(y=self.inan.dev_threshold, color='r', linestyle='--')
+        plt.scatter(range(len(self.indev.P)), self.indev.P)
+        plt.plot(range(len(self.indev.M)), self.indev.M)
+        plt.axhline(y=self.indev.dev_threshold, color='r', linestyle='--')
         plt.show()
         
     # ===========================================

@@ -17,12 +17,12 @@ $ pip install -e .
 # Usage
 Please check the examples in the *./examples* directory. Here is a brief explanation:
 
-First, you need to import `GroupAnomaly` and create an instance:
+First, you need to import `GroupDeviation` and create an instance:
 ```python
-from cosmo.group_anomaly import GroupAnomaly
+from cosmo.group_deviation import GroupDeviation
 
-# Create an instance of GroupAnomaly
-ga = GroupAnomaly(  w_ref_group="7days",        # Time window for the reference group
+# Create an instance of GroupDeviation
+gdev = GroupDeviation(  w_ref_group="7days",        # Time window for the reference group
                     w_martingale=15,            # Window size for computing the deviation level
                     non_conformity="median",    # Non-conformity (strangeness) measure: "median" or "knn"
                     k=50,                       # Used if non_conformity is "knn"
@@ -40,7 +40,7 @@ dataset = load_vehicles()
 # to simulate a stream (see example below)
 ```
 
-A streaming setting is considered where data (indicated as `x_units` in the example below) is received from the units at each time step `dt`. The method `GroupAnomaly.predict(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `predict` method returns:
+A streaming setting is considered where data (indicated as `x_units` in the example below) is received from the units at each time step `dt`. The method `GroupDeviation.predict(uid, dt, x_units)` is then called each time to diagnoise the test unit indicated by the index `uid` (i.e. the data-point received from this unit at time `dt` is `x_units[uid]`). The `predict` method returns:
 1. a *strangeness* score : the non-conformity of the test unit to the other units).
 2. a *p-value* (in [0, 1]) : the proportion of data from other units which are stranger than the test unit's data.
 3. an updated *devaliation* level (in [0, 1]) for the test unit.
@@ -51,7 +51,7 @@ Each data-point x_units[i] comes from the i'th unit.'''
 
 for dt, x_units in dataset.stream():
     # diagnoise the selected test unit (at index 0)
-    strangeness, pvalue, deviation, is_dev = ga.predict(0, dt, x_units)
+    strangeness, pvalue, deviation, is_dev = gdev.predict(0, dt, x_units)
     
     print("Time: {} ==> strangeness: {}, p-value: {}, deviation: {} ({})"
         .format(dt, strangeness, pvalue, deviation, "high" if is_dev else "low"))
@@ -60,5 +60,5 @@ for dt, x_units in dataset.stream():
 The deviation level for the test unit can be plotted as folows
 ```python
 # Plot p-values and deviation level over time
-ga.plot_deviation()
+gdev.plot_deviation()
 ```
