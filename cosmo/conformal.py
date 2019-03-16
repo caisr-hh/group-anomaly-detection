@@ -51,6 +51,9 @@ class StrangenessMedian:
     
     def __init__(self):
         self.med = None
+    
+    def is_fitted(self):
+        return self.med is not None
         
     def fit(self, X):
         '''Computes the median data in X
@@ -95,6 +98,9 @@ class StrangenessKNN:
     def __init__(self, k = 10):
         self.k = k
         self.X = None
+    
+    def is_fitted(self):
+        return self.X is not None
         
     def fit(self, X):
         '''Keeps reference to X for computing knn
@@ -134,8 +140,12 @@ class Strangeness:
     def __init__(self, measure = "median", k = 10):
         self.h = StrangenessMedian() if measure == "median" else StrangenessKNN(k)
         
+    def is_fitted(self):
+        return self.h.is_fitted()
+        
     def fit(self, X):
         return self.h.fit(X)
         
     def get(self, x):
-        return self.h.predict(x)
+        return self.h.get(x)
+        

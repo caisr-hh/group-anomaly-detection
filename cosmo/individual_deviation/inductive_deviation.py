@@ -1,8 +1,10 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
+from cosmo.exceptions import NotFitted
 import matplotlib.pylab as plt
 
 class InductiveDeviation:
-    '''Self monitoring for a group of units (machines)
+    '''Deviation detection for a single unit
+    Training data is separate from testing data stream
     
     Parameters:
     ----------
@@ -27,7 +29,7 @@ class InductiveDeviation:
         self.dev_threshold = dev_threshold
         
         self.strg = Strangeness(non_conformity, k)
-        self.scores = None
+        self.scores = []
         self.S, self.P, self.M = [], [], []
         
     # ===========================================
@@ -67,6 +69,9 @@ class InductiveDeviation:
         deviation : float, in [0, 1]
             Normalized deviation level updated based on the last w_martingale steps
         '''
+        
+        if not self.strg.is_fitted():
+            raise NotFitted('fit(..) must be called at least once before predict(..)')
 
         strangeness = self.strg.get(x)
         self.S.append(strangeness)

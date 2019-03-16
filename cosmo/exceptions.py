@@ -1,0 +1,2 @@
+class NotFitted(Exception):
+    pass
