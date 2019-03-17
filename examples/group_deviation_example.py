@@ -14,7 +14,8 @@ gdev = GroupDeviation(  nb_units=nb_units,          # Number of units (vehicles)
                         k=50,                       # Used if non_conformity is "knn"
                         dev_threshold=.6)           # Threshold on the deviation level
 
-# At each time dt, a data-point x_units[i] comes from the i'th unit
+# At each time dt, x_units contains data from all units.
+# Each data-point x_units[i] comes from the i'th unit.
 for dt, x_units in dataset.stream():
     
     # diagnoise the selected target units (0 and 1)
@@ -24,5 +25,5 @@ for dt, x_units in dataset.stream():
         print("Unit:{}, Time: {} ==> strangeness: {}, p-value: {}, deviation: {} ({})".format(uid, dt, devCon.strangeness, 
         devCon.pvalue, devCon.deviation, "high" if devCon.is_deviating else "low"))
 
-# Plot p-values and deviation level over time
+# Plot p-values and deviation levels over time
 gdev.plot_deviations()
