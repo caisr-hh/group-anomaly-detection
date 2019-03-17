@@ -23,6 +23,10 @@ class DataCSVs:
         return self
         
     # -------------------------------------
+    def get_nb_units(self):
+        return len(self.files_csv)
+        
+    # -------------------------------------
     def stream(self):
         for dt in self.dates:
             x_units = []

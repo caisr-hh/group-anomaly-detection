@@ -1,9 +1,10 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
+from cosmo.deviation_context import DeviationContext
+
 import matplotlib.pylab as plt
 
-class InductiveDeviation:
-    '''Deviation detection for a single unit
-    Training data is separate from testing data stream
+class IndividualDeviation:
+    '''Deviation detection for a single/individual unit
     
     Parameters:
     ----------
@@ -29,7 +30,8 @@ class InductiveDeviation:
         
         self.strg = Strangeness(non_conformity, k)
         self.scores = []
-        self.S, self.P, self.M = [], [], []
+        self.T, self.S, self.P, self.M = [], [], [], []
+        
         
     # ===========================================
     def fit(self, X):
@@ -49,11 +51,14 @@ class InductiveDeviation:
         return self
     
     # ===========================================
-    def predict(self, x):
+    def predict(self, dtime, x):
         '''Update the deviation level based on the new test sample x
         
         Parameters:
         -----------
+        dtime : datetime
+            datetime corresponding to the sample x
+        
         x : array-like, shape (n_features,)
             Sample for which the strangeness, p-value and deviation level are computed
         
@@ -69,6 +74,8 @@ class InductiveDeviation:
             Normalized deviation level updated based on the last w_martingale steps
         '''
         
+        self.T.append(dtime)
+        
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
         
@@ -80,14 +87,14 @@ class InductiveDeviation:
         self.M.append(deviation)
         
         is_dev = deviation > self.dev_threshold
-        return strangeness, pval, deviation, is_dev
+        return DeviationContext(strangeness, pval, deviation, is_dev)
         
     # ===========================================
-    def plot_deviation(self):
+    def plot_deviations(self):
         '''Plots the p-value and deviation level over time.
         '''
         
-        plt.scatter(range(len(self.P)), self.P)
-        plt.plot(range(len(self.M)), self.M)
+        plt.scatter(self.T, self.P, marker=".")
+        plt.plot(self.T, self.M)
         plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
         plt.show()

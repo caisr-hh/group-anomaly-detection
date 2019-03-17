@@ -1,3 +1,6 @@
+from cosmo.exceptions import TestUnitError, InputValidationError
+from cosmo import validation
+
 import pandas as pd, numpy as np
 
 class ReferenceGrouping:
@@ -13,7 +16,7 @@ class ReferenceGrouping:
     def __init__(self, w_ref_group):
         self.w_ref_group = w_ref_group
     
-    # =================================================================================
+    # ===========================================
     def get_target_and_reference(self, uid_test, dt, dffs):
         '''Extracts a test sample and its reference group
         
@@ -38,18 +41,20 @@ class ReferenceGrouping:
                 Latest samples in the reference group (other units) over a period of w_ref_group
         '''
         
-        x = dffs[uid_test].iloc[-1, :].values
+        validation.validate_reference_grouping(uid_test, dt, dffs)
+        
+        x = dffs[uid_test].loc[dt].values
         Xref = []
         for i, dff in enumerate(dffs):
             if i == uid_test: continue
             Xref += list( dff[dt - pd.to_timedelta(self.w_ref_group) : dt].values )
         
         Xref = np.array(Xref)
-        return (x, Xref)
+        return x, Xref
     
-    # =================================================================================
+    # ===========================================
     '''
     Future
     TODO: possibility of adding personalized reference/peer groups ...
     '''
-    # =================================================================================
+    # ===========================================

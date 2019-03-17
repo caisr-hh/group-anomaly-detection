@@ -1,5 +1,8 @@
 from .reference_grouping import ReferenceGrouping
-from cosmo.individual_deviation import InductiveDeviation
+from cosmo import IndividualDeviation
+from cosmo.exceptions import TestUnitError
+from cosmo.deviation_context import DeviationContext
+
 from datetime import datetime
 import pandas as pd, numpy as np, matplotlib.pylab as plt
 
@@ -8,17 +11,23 @@ class GroupDeviation:
     
     Parameters:
     ----------
+    nb_units : int
+        Number of units. Must be equal to len(x_units), where x_units is a parameter of the method self.predict
+        
+    ids_target_units : list
+        List of indexes of the target units (to be diagnoised). Each element of the list should be an integer between 0 (included) and nb_units (excluded).
+        
     w_ref_group : string
         Time window used to define the reference group, e.g. "7days", "12h" ...
         Possible values for the units can be found in https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_timedelta.html
-                
+        
     w_martingale : int
         Window used to compute the deviation level based on the last w_martingale samples. 
-                
+        
     non_conformity : string
         Strangeness (or non-conformity) measure used to compute the deviation level.
         It must be either "median" or "knn"
-                
+        
     k : int
         Parameter used for k-nearest neighbours, when non_conformity is set to "knn"
         
@@ -26,7 +35,9 @@ class GroupDeviation:
         Threshold in [0,1] on the deviation level
     '''
     
-    def __init__(self, w_ref_group="7days", w_martingale=15, non_conformity="median", k=50, dev_threshold=.6):
+    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=50, dev_threshold=.6):
+        self.nb_units = nb_units
+        self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
         self.w_martingale = w_martingale
         self.non_conformity = non_conformity
@@ -35,27 +46,21 @@ class GroupDeviation:
         
         self.dffs = []
         self.ref = ReferenceGrouping(self.w_ref_group)
-        self.indev = InductiveDeviation(w_martingale=self.w_martingale,
-                                    non_conformity=self.non_conformity,
-                                    k=self.k,
-                                    dev_threshold=self.dev_threshold)
-                                    
+        self.detectors = [ IndividualDeviation(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
+        
     # ===========================================
-    def predict(self, uid, dt, x_units):
-        '''Diagnoise a test unit (identified by uid)
-        Compute deviation level by comparing the data from the test unit (x_units[uid]) against the reference group.
+    def predict(self, dt, x_units):
+        '''Diagnoise each target unit based on its data x_units[uid] (where uid is in ids_target_units).
+        Compute deviation level by comparing the data from the target unit (x_units[uid]) against the reference group.
         
         Parameters:
         -----------
-        uid : int
-            Index (in x_units) of the test unit to diagnoise. Must be in range(len(x_units)).
-            
         dt : datetime
             Current datetime period
         
         x_units : array-like, shape (n_units, n_features)
             Each element x_units[i] corresponds to a data-point from the i'th unit at time dt.
-            len(x_units) should correspond to the number of units.
+            len(x_units) should correspond to the number of units (nb_units).
         
         Returns:
         --------
@@ -73,21 +78,28 @@ class GroupDeviation:
         '''
         
         self._add_data_units(dt, x_units)
-        x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
+        deviations = []
         
-        self.indev.fit(Xref)
-        strangeness, pvalue, deviation, is_deviating = self.indev.predict(x)
-        
-        return (strangeness, pvalue, deviation, is_deviating)
+        for uid in self.ids_target_units:
+            detector = self.detectors[uid]
+            
+            try:
+                x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
+                detector.fit(Xref)
+                devContext = detector.predict(dt, x)
+            except TestUnitError:
+                devContext = DeviationContext(0, 0.5, 0, False) # no deviation by default
+            
+            deviations.append(devContext)
+            
+        return deviations
         
     # ===========================================
-    def plot_deviation(self):
-        '''Plots the p-value and deviation level over time.
+    def plot_deviations(self):
+        '''Plots the p-values and deviation levels over time.
         '''
-        plt.scatter(range(len(self.indev.P)), self.indev.P)
-        plt.plot(range(len(self.indev.M)), self.indev.M)
-        plt.axhline(y=self.indev.dev_threshold, color='r', linestyle='--')
-        plt.show()
+        for uid in self.ids_target_units:
+            self.detectors[uid].plot_deviations()
         
     # ===========================================
     def _add_data_units(self, dt, x_units):
