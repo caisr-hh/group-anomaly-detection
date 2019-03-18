@@ -4,14 +4,14 @@ Self-Monitoring with a Group-based Anomaly Detection Approach.
 This is an implementation a group-based anomaly detection method. It allows to autonomously monitor a system (unit) that generates data over time, by comparing it against a group of other similar systems (units). It detects anomalies/deviations in a streaming fashion while accounting for concept drift which is due to external factors that can affect the data.
 
 # Install
-You can the package locally (for use on your system), with:
+You can install the package locally (for use on your system), with:
 ```
-$ pip install . -r requirements.txt
+$ pip install .
 ```
 
 You can also install the package with a symlink, so that changes to the source files will be immediately available to other users of the package on our system:
 ```
-$ pip install -e . -r requirements.txt
+$ pip install -e .
 ```
 
 # Usage
