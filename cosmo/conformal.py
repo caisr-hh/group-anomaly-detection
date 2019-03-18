@@ -20,9 +20,7 @@ def pvalue(val, values):
     
 # ==============================================
 def martingale(pvalues):
-    '''Method for private use only.
-    Additive martingale over the last w steps.
-    TODO: can be computed incrementally (more efficient).
+    '''Additive martingale over the last w steps.
     
     Parameters:
     -----------

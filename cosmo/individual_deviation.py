@@ -1,4 +1,4 @@
-from cosmo.conformal import pvalue, martingale, Strangeness
+from cosmo.conformal import pvalue, Strangeness
 from cosmo.utils import DeviationContext
 from cosmo import utils
 
@@ -34,6 +34,9 @@ class IndividualDeviation:
         self.strg = Strangeness(non_conformity, k)
         self.scores = []
         self.T, self.S, self.P, self.M = [], [], [], []
+        
+        self.mart = 0
+        self.marts = []
         
         
     # ===========================================
@@ -86,12 +89,37 @@ class IndividualDeviation:
         pval = pvalue(strangeness, self.scores)
         self.P.append(pval)
         
-        w = self.w_martingale
-        deviation = martingale(self.P[-w:])
+        deviation = self._update_martingale(pval)
         self.M.append(deviation)
         
         is_deviating = deviation > self.dev_threshold
         return DeviationContext(strangeness, pval, deviation, is_deviating)
+        
+    # ===========================================
+    def _update_martingale(self, pval):
+        '''Incremental additive martingale over the last w_martingale steps.
+        
+        Parameters:
+        -----------
+        pval : int, in [0, 1]
+            The most recent p-value
+        
+        Returns:
+        --------
+        normalized_one_sided_mart : float, in [0, 1]
+            Deviation level. A normalized version of the current martingale value.
+        '''
+        w = self.w_martingale
+        betting = lambda p: -p + .5
+        
+        self.mart += betting(pval)
+        self.marts.append(self.mart)
+        
+        mat_in_window = self.mart - self.marts[-w] if len(self.marts) >= w else 0
+        
+        normalized_mart = ( mat_in_window ) / (.5 * w)
+        normalized_one_sided_mart = max(normalized_mart, 0)
+        return normalized_one_sided_mart
         
     # ===========================================
     def plot_deviations(self):
