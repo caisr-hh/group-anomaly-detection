@@ -1,5 +1,4 @@
-from cosmo.exceptions import TestUnitError, InputValidationError
-from cosmo import validation
+from cosmo import utils
 
 import pandas as pd, numpy as np
 
@@ -41,7 +40,7 @@ class ReferenceGrouping:
                 Latest samples in the reference group (other units) over a period of w_ref_group
         '''
         
-        validation.validate_reference_grouping(uid_test, dt, dffs)
+        utils.validate_reference_grouping(uid_test, dt, dffs)
         
         x = dffs[uid_test].loc[dt].values
         Xref = []

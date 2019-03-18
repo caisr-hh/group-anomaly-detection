@@ -1,5 +1,5 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
-from cosmo.exceptions import InputValidationError, NotFitted
+from cosmo.utils import InputValidationError, NotFittedError
 import unittest, numpy as np
 
 class TestConformal(unittest.TestCase):
@@ -46,12 +46,12 @@ class TestConformal(unittest.TestCase):
             strg = Strangeness(measure = "foo", k = 10)
             
     def test_strangeness_median_not_fitted(self):
-        with self.assertRaises(NotFitted):
+        with self.assertRaises(NotFittedError):
             strg = Strangeness(measure = "median", k = 10)
             strg.get([1,2,3])
             
     def test_strangeness_knn_not_fitted(self):
-        with self.assertRaises(NotFitted):
+        with self.assertRaises(NotFittedError):
             strg = Strangeness(measure = "knn", k = 10)
             strg.get([1,2,3])
             
@@ -69,6 +69,26 @@ class TestConformal(unittest.TestCase):
         strg.fit(X)
         self.assertTrue(strg.h.X is not None)
         self.assertEqual(strg.get([7,8,9]), 27**0.5 / 2)
+        
+    def test_strangeness_fit_input_wrong(self):
+        strg = Strangeness(measure = "median", k = 10)
+        
+        with self.assertRaises(InputValidationError):
+            strg.fit([])
+            
+        with self.assertRaises(InputValidationError):
+            strg.fit("foo")
+            
+    def test_strangeness_predict_input_wrong(self):
+        strg = Strangeness(measure = "median", k = 10)
+        X = [[1,2,3], [4,5,6], [7,8,9]]
+        strg.fit(X)
+        
+        with self.assertRaises(InputValidationError):
+            strg.get([])
+            
+        with self.assertRaises(InputValidationError):
+            strg.get("foo")
         
 if __name__ == '__main__':
     unittest.main()

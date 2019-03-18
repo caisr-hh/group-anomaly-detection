@@ -1,5 +1,6 @@
 from cosmo.conformal import pvalue, martingale, Strangeness
-from cosmo.deviation_context import DeviationContext
+from cosmo.utils import DeviationContext
+from cosmo import utils
 
 import matplotlib.pylab as plt
 
@@ -22,7 +23,9 @@ class IndividualDeviation:
         Threshold in [0,1] on the deviation level
     '''
     
-    def __init__(self, w_martingale, non_conformity, k, dev_threshold):
+    def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6):
+        utils.validate_individual_deviation_params(w_martingale, non_conformity, k, dev_threshold)
+        
         self.w_martingale = w_martingale
         self.non_conformity = non_conformity
         self.k = k
@@ -38,16 +41,17 @@ class IndividualDeviation:
         '''Fit the anomaly detector to the data X (assumed to be normal)
         Parameters:
         -----------
-        Xref : array-like, shape (n_samples, n_features)
-            Samples from units in the reference group
+        X : array-like, shape (n_samples, n_features)
+            Samples assumed to be not deviating from normal
         
         Returns:
         --------
         self : object
         '''
         
-        self.strg = self.strg.fit(X)
+        self.strg.fit(X)
         self.scores = [ self.strg.get(xx) for xx in X ]
+        
         return self
     
     # ===========================================
@@ -74,7 +78,7 @@ class IndividualDeviation:
             Normalized deviation level updated based on the last w_martingale steps
         '''
         
-        self.T.append(dtime)
+        self.T.append(dtime) # TODO: this is not necessarily required
         
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
@@ -86,8 +90,8 @@ class IndividualDeviation:
         deviation = martingale(self.P[-w:])
         self.M.append(deviation)
         
-        is_dev = deviation > self.dev_threshold
-        return DeviationContext(strangeness, pval, deviation, is_dev)
+        is_deviating = deviation > self.dev_threshold
+        return DeviationContext(strangeness, pval, deviation, is_deviating)
         
     # ===========================================
     def plot_deviations(self):

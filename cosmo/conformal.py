@@ -1,5 +1,5 @@
 import numpy as np
-from cosmo import validation
+from cosmo import utils
 
 # ==============================================
 def pvalue(val, values):
@@ -15,7 +15,7 @@ def pvalue(val, values):
         p-value representing the proportion of values in that are larger than the given value (val).
     '''
     
-    validation.validate_list_not_empty(values)
+    utils.validate_list_not_empty(values)
     return np.mean([1. if v > val else 0. for v in values])
     
 # ==============================================
@@ -35,8 +35,8 @@ def martingale(pvalues):
         Deviation level. A normalized version of the current martingale value.
     '''
     
-    validation.validate_list_not_empty(pvalues)
-    validation.validate_all_in_range(pvalues, (0, 1))
+    utils.validate_list_not_empty(pvalues)
+    utils.validate_all_in_range(pvalues, (0, 1))
     
     betting = lambda p: -p + .5
     normalized_mart = np.sum([ betting(p) for p in pvalues ]) / (.5 * len(pvalues))
@@ -99,7 +99,7 @@ class StrangenessKNN:
     '''
     
     def __init__(self, k = 10):
-        validation.validate_int_higher(k, 0)
+        utils.validate_int_higher(k, 0)
         
         self.k = k
         self.X = None
@@ -143,16 +143,18 @@ class Strangeness:
     '''
     
     def __init__(self, measure = "median", k = 10):
-        validation.validate_str_in_list(measure, ["median", "knn"])
+        utils.validate_str_in_list(measure, ["median", "knn"])
         self.h = StrangenessMedian() if measure == "median" else StrangenessKNN(k)
         
     def is_fitted(self):
         return self.h.is_fitted()
         
     def fit(self, X):
+        utils.validate_fit_input(X)
         return self.h.fit(X)
         
     def get(self, x):
-        validation.validate_is_fitted(self.is_fitted())
+        utils.validate_is_fitted(self.is_fitted())
+        utils.validate_get_input(x)
         return self.h.get(x)
         

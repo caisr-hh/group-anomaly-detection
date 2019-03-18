@@ -1,7 +1,6 @@
 from .reference_grouping import ReferenceGrouping
 from cosmo import IndividualDeviation
-from cosmo.exceptions import TestUnitError
-from cosmo.deviation_context import DeviationContext
+from cosmo.utils import TestUnitError, DeviationContext
 
 from datetime import datetime
 import pandas as pd, numpy as np, matplotlib.pylab as plt
@@ -35,7 +34,7 @@ class GroupDeviation:
         Threshold in [0,1] on the deviation level
     '''
     
-    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=50, dev_threshold=.6):
+    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=20, dev_threshold=.6):
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
