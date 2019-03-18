@@ -6,12 +6,12 @@ This is an implementation a group-based anomaly detection method. It allows to a
 # Install
 You can the package locally (for use on your system), with:
 ```
-$ pip install .
+$ pip install . -r requirements.txt
 ```
 
 You can also install the package with a symlink, so that changes to the source files will be immediately available to other users of the package on our system:
 ```
-$ pip install -e .
+$ pip install -e . -r requirements.txt
 ```
 
 # Usage
