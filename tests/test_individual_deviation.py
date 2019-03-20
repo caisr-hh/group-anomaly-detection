@@ -52,19 +52,18 @@ class TestIndividualDeviation(unittest.TestCase):
         self.assertEqual(indev.scores, expected)
         self.assertTrue(np.allclose(indev.scores, expected))
         
-    def test_predict_median_empty_P(self):
+    def test_predict_median_w15(self):
         indev = IndividualDeviation(w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6)
         indev.fit(np.array([[1,2,3], [4,5,6], [7,8,9]]))
         res = indev.predict(None, [1,1,1])
-        expected = DeviationContext((3**2+4**2+5**2)**0.5, 0, 1, True)
+        expected = DeviationContext((3**2+4**2+5**2)**0.5, 0, 0.25, False)
         self.assertEqual(res, expected)
         
-    def test_predict_median_non_empty_P(self):
+    def test_predict_median_w3(self):
         indev = IndividualDeviation(w_martingale=3, non_conformity="median", k=20, dev_threshold=0.6)
         indev.fit(np.array([[1,2,3], [4,5,6], [7,8,9]]))
-        indev.P = [0.5, 0.7, 0.3, 0.9, 0.6, 0.1]
         res = indev.predict(None, [1,1,1])
-        expected = DeviationContext((3**2+4**2+5**2)**0.5, 0, (-0.6+0.5-0.1+0.5-0+0.5) / (0.5*3), False)
+        expected = DeviationContext((3**2+4**2+5**2)**0.5, 0, 1/3, False)
         self.assertEqual(res, expected)
         
     def test_predict_not_fitted(self):

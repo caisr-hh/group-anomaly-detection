@@ -36,7 +36,7 @@ class IndividualDeviation:
         self.T, self.S, self.P, self.M = [], [], [], []
         
         self.mart = 0
-        self.marts = []
+        self.marts = [0, 0, 0]
         
         
     # ===========================================
@@ -53,7 +53,7 @@ class IndividualDeviation:
         '''
         
         self.strg.fit(X)
-        self.scores = [ self.strg.get(xx) for xx in X ]
+        self.scores = self.strg.get_fit_scores()
         
         return self
     
@@ -109,13 +109,14 @@ class IndividualDeviation:
         normalized_one_sided_mart : float, in [0, 1]
             Deviation level. A normalized version of the current martingale value.
         '''
-        w = self.w_martingale
+        
         betting = lambda p: -p + .5
         
         self.mart += betting(pval)
         self.marts.append(self.mart)
         
-        mat_in_window = self.mart - self.marts[-w] if len(self.marts) >= w else 0
+        w = min(self.w_martingale, len(self.marts))
+        mat_in_window = self.mart - self.marts[-w]
         
         normalized_mart = ( mat_in_window ) / (.5 * w)
         normalized_one_sided_mart = max(normalized_mart, 0)

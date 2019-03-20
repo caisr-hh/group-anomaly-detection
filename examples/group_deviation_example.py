@@ -12,7 +12,7 @@ if __name__ == '__main__':
                             ids_target_units=[0, 1],    # Ids of the (target) units to diagnoise
                             w_ref_group="7days",        # Time window for the reference group
                             w_martingale=15,            # Window size for computing the deviation level
-                            non_conformity="median",    # Non-conformity (strangeness) measure: "median" or "knn"
+                            non_conformity="lof",    # Non-conformity (strangeness) measure: "median" or "knn" or "lof"
                             k=50,                       # Used if non_conformity is "knn"
                             dev_threshold=.6)           # Threshold on the deviation level
 

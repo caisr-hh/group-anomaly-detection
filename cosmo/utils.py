@@ -8,11 +8,13 @@ DeviationContext = namedtuple('DeviationContext', 'strangeness pvalue deviation 
 class NotFittedError(Exception): pass
 class InputValidationError(Exception): pass
 class TestUnitError(Exception): pass
+class NoRefGroupError(Exception): pass
 
 # ===========================================
-def validate_str_in_list(string, strings):
+def validate_measure_str(string):
+    strings = ["median", "knn", "lof"]
     if string not in strings:
-        raise InputValidationError("string '{}' should be one of {}".format(string, strings))
+        raise InputValidationError("measure should be one of {}. Given measure = '{}'".format(strings, string))
         
 def validate_int_higher(k, low):
     if not k > low: raise InputValidationError("The specified integer {} should be higher than {}".format(k, low))
@@ -31,7 +33,11 @@ def validate_is_fitted(is_fitted):
     if not is_fitted:
         raise NotFittedError("'fit' must be called before calling 'get'")
         
-def validate_reference_grouping(uid_test, dt, dffs):
+def validate_reference_group(Xref):
+    if len(Xref) == 0:
+        raise NoRefGroupError("Empty reference group data.")
+    
+def validate_reference_grouping_input(uid_test, dt, dffs):
     if not (0 <= uid_test < len(dffs)):
         raise InputValidationError("uid_test should be in range(nb_units). Given uid_test = {}, nb_units is {}".format(uid_test, len(dffs)))
         
@@ -47,7 +53,7 @@ def validate_individual_deviation_params(w_martingale, non_conformity, k, dev_th
     if w_martingale < 1:
         raise InputValidationError("w_martingale should be an integer higher than 0. Given w_martingale = {}".format(w_martingale))
     
-    strings = ["median", "knn"]
+    strings = ["median", "knn", "lof"]
     if non_conformity not in strings:
         raise InputValidationError("non_conformity should be one of {}. Given non_conformity = '{}'".format(strings, non_conformity))
     

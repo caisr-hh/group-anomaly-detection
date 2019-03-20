@@ -1,6 +1,6 @@
 from .reference_grouping import ReferenceGrouping
 from cosmo import IndividualDeviation
-from cosmo.utils import TestUnitError, DeviationContext
+from cosmo.utils import DeviationContext, TestUnitError, NoRefGroupError
 
 from datetime import datetime
 import pandas as pd, numpy as np, matplotlib.pylab as plt
@@ -25,7 +25,7 @@ class GroupDeviation:
         
     non_conformity : string
         Strangeness (or non-conformity) measure used to compute the deviation level.
-        It must be either "median" or "knn"
+        It must be either "median" or "knn" or "lof"
         
     k : int
         Parameter used for k-nearest neighbours, when non_conformity is set to "knn"
@@ -86,7 +86,7 @@ class GroupDeviation:
                 x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
                 detector.fit(Xref)
                 devContext = detector.predict(dt, x)
-            except TestUnitError:
+            except (TestUnitError, NoRefGroupError):
                 devContext = DeviationContext(0, 0.5, 0, False) # no deviation by default
             
             deviations.append(devContext)

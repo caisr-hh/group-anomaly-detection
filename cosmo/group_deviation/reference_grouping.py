@@ -40,7 +40,7 @@ class ReferenceGrouping:
                 Latest samples in the reference group (other units) over a period of w_ref_group
         '''
         
-        utils.validate_reference_grouping(uid_test, dt, dffs)
+        utils.validate_reference_grouping_input(uid_test, dt, dffs)
         
         x = dffs[uid_test].loc[dt].values
         Xref = []
@@ -48,12 +48,8 @@ class ReferenceGrouping:
             if i == uid_test: continue
             Xref += list( dff[dt - pd.to_timedelta(self.w_ref_group) : dt].values )
         
+        utils.validate_reference_group(Xref)
         Xref = np.array(Xref)
         return x, Xref
     
-    # ===========================================
-    '''
-    Future
-    TODO: possibility of adding personalized reference/peer groups ...
-    '''
     # ===========================================
