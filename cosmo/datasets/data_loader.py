@@ -9,7 +9,7 @@ class DataCSVs:
     The data of each unit is presented as a CSV file.
     '''
     def __init__(self, data_path):
-        self.files_csv = [ join(data_path, f) for f in listdir(data_path) if isfile(join(data_path, f)) ]
+        self.files_csv = sorted([ join(data_path, f) for f in listdir(data_path) if isfile(join(data_path, f)) ])
         self.dfs, self.dates = [], []
     
     # -------------------------------------
