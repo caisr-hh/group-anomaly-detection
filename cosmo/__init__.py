@@ -1,2 +1,3 @@
 from .individual_deviation import IndividualDeviation
+from .individual_deviation_tr import IndividualDeviationTr
 from .group_deviation import GroupDeviation
