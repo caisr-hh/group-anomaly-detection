@@ -1,11 +1,10 @@
 from .reference_grouping import ReferenceGrouping
-from cosmo import IndividualDeviation
+from cosmo import IndividualAnomalyInductive
 from cosmo.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
-from datetime import datetime
-import pandas as pd, numpy as np, matplotlib.pylab as plt
+import pandas as pd
 
-class GroupDeviation:
+class GroupAnomaly:
     '''Self monitoring for a group of units (machines)
     
     Parameters:
@@ -45,7 +44,7 @@ class GroupDeviation:
         
         self.dffs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
         self.ref = ReferenceGrouping(self.w_ref_group)
-        self.detectors = [ IndividualDeviation(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
+        self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
         
     # ===========================================
     def predict(self, dt, x_units):

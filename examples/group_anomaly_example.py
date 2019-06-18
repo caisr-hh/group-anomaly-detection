@@ -1,5 +1,5 @@
 from cosmo.datasets import load_vehicles
-from cosmo import GroupDeviation
+from cosmo import GroupAnomaly
 
 if __name__ == '__main__':
     
@@ -8,7 +8,7 @@ if __name__ == '__main__':
     nb_units = dataset.get_nb_units() # 19 vehicles in this example
 
     # Create an instance of GroupDeviation
-    gdev = GroupDeviation(  nb_units=nb_units,          # Number of units (vehicles)
+    gdev = GroupAnomaly(  nb_units=nb_units,          # Number of units (vehicles)
                             ids_target_units=[0, 1],    # Ids of the (target) units to diagnoise
                             w_ref_group="7days",        # Time window for the reference group
                             w_martingale=15,            # Window size for computing the deviation level

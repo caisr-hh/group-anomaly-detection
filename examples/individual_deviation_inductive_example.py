@@ -1,5 +1,5 @@
 from cosmo.datasets import load_vehicles
-from cosmo import IndividualDeviation
+from cosmo import IndividualAnomalyInductive
 
 if __name__ == '__main__':
     
@@ -9,7 +9,7 @@ if __name__ == '__main__':
     unit0_train = unit0[len(unit0)//2:] # subset of the data
 
     # Create an instance of IndividualDeviation
-    indev = IndividualDeviation( w_martingale=15,           # Window size for computing the deviation level
+    indev = IndividualAnomalyInductive( w_martingale=15,           # Window size for computing the deviation level
                                 non_conformity="median",    # Non-conformity (strangeness) measure: "median" or "knn" or "lof"
                                 k=50,                       # Used if non_conformity is "knn"
                                 dev_threshold=.6)           # Threshold on the deviation level

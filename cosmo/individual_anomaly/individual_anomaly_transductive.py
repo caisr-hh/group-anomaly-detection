@@ -5,7 +5,7 @@ from cosmo import utils
 import matplotlib.pylab as plt, pandas as pd, datetime, numpy as np
 
 
-class IndividualDeviationTr:
+class IndividualAnomalyTransductive:
     '''Deviation detection for a single/individual unit
 
     Parameters:

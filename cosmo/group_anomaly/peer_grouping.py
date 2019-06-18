@@ -2,7 +2,7 @@ from cosmo import utils
 
 import pandas as pd, numpy as np
 
-class ReferenceGrouping:
+class PeerGrouping:
     '''Construct reference groups
     
     Parameters:
