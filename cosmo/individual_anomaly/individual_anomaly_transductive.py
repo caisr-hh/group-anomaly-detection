@@ -1,5 +1,5 @@
 from cosmo.conformal import pvalue, Strangeness
-from cosmo.utils import DeviationContext, append_to_df
+from cosmo.utils import DeviationContext, InputValidationError, append_to_df
 from cosmo import utils
 
 import matplotlib.pylab as plt, pandas as pd, datetime, numpy as np
@@ -25,13 +25,13 @@ class IndividualAnomalyTransductive:
     '''
 
     def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6, ref_group="month"):
-        utils.validate_individual_deviation_params(w_martingale, non_conformity, k, dev_threshold)
+        utils.validate_individual_deviation_params(w_martingale, non_conformity, k, dev_threshold, ref_group)
 
         self.w_martingale = w_martingale
         self.non_conformity = non_conformity
         self.k = k
         self.dev_threshold = dev_threshold
-        self.ref_group = ref_group #TODO VALIDATION: ref_group should be one of: "week", "month", "season", "external"
+        self.ref_group = ref_group
 
         self.strg = Strangeness(non_conformity, k)
         self.scores = []
@@ -110,7 +110,9 @@ class IndividualAnomalyTransductive:
             X = self.df.loc[(current == historical)].values
 
         else: # self.ref_group == "external":
-            #TODO VALIDATION: in this case, external should not be None
+            if external is None:
+                raise InputValidationError("When ref_group is set to 'external', the parameter external must specified.")
+
             current = external
             historical = np.array(self.externals)
 

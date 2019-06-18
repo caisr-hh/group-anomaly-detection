@@ -7,7 +7,7 @@ if __name__ == '__main__':
     dataset = load_vehicles()
     nb_units = dataset.get_nb_units() # 19 vehicles in this example
 
-    # Create an instance of GroupDeviation
+    # Create an instance of GroupAnomaly
     gdev = GroupAnomaly(  nb_units=nb_units,          # Number of units (vehicles)
                             ids_target_units=[0, 1],    # Ids of the (target) units to diagnoise
                             w_ref_group="7days",        # Time window for the reference group

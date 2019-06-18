@@ -6,7 +6,7 @@ if __name__ == '__main__':
     # Get data from one unit (vehicle)
     dataset = load_vehicles()
 
-    # Create an instance of IndividualDeviation
+    # Create an instance of IndividualAnomalyTransductive
     indev = IndividualAnomalyTransductive(w_martingale=15,  # Window size for computing the deviation level
                                 non_conformity="median", # Strangeness measure: "median" or "knn" or "lof"
                                 k=50,  # Used if non_conformity is "knn"

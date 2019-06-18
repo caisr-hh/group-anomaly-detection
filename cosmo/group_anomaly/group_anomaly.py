@@ -1,4 +1,4 @@
-from .reference_grouping import ReferenceGrouping
+from .peer_grouping import PeerGrouping
 from cosmo import IndividualAnomalyInductive
 from cosmo.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
@@ -43,7 +43,7 @@ class GroupAnomaly:
         self.dev_threshold = dev_threshold
         
         self.dffs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
-        self.ref = ReferenceGrouping(self.w_ref_group)
+        self.pg = PeerGrouping(self.w_ref_group)
         self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
         
     # ===========================================
@@ -82,7 +82,7 @@ class GroupAnomaly:
             detector = self.detectors[uid]
             
             try:
-                x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
+                x, Xref = self.pg.get_target_and_reference(uid, dt, self.dffs)
                 detector.fit(Xref)
                 devContext = detector.predict(dt, x)
             except (TestUnitError, NoRefGroupError):
