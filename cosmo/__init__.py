@@ -1,2 +1,3 @@
-from .individual_deviation import IndividualDeviation
-from .group_deviation import GroupDeviation
+from cosmo.individual_anomaly.individual_anomaly_inductive import IndividualAnomalyInductive
+from cosmo.individual_anomaly.individual_anomaly_transductive import IndividualAnomalyTransductive
+from .group_anomaly import GroupAnomaly

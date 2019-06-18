@@ -4,7 +4,7 @@ from cosmo import utils
 
 import matplotlib.pylab as plt
 
-class IndividualDeviation:
+class IndividualAnomalyInductive:
     '''Deviation detection for a single/individual unit
     
     Parameters:

@@ -1,11 +1,10 @@
-from .reference_grouping import ReferenceGrouping
-from cosmo import IndividualDeviation
-from cosmo.utils import DeviationContext, TestUnitError, NoRefGroupError
+from .peer_grouping import PeerGrouping
+from cosmo import IndividualAnomalyInductive
+from cosmo.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
-from datetime import datetime
-import pandas as pd, numpy as np, matplotlib.pylab as plt
+import pandas as pd
 
-class GroupDeviation:
+class GroupAnomaly:
     '''Self monitoring for a group of units (machines)
     
     Parameters:
@@ -43,9 +42,9 @@ class GroupDeviation:
         self.k = k
         self.dev_threshold = dev_threshold
         
-        self.dffs = []
-        self.ref = ReferenceGrouping(self.w_ref_group)
-        self.detectors = [ IndividualDeviation(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
+        self.dffs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
+        self.pg = PeerGrouping(self.w_ref_group)
+        self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
         
     # ===========================================
     def predict(self, dt, x_units):
@@ -76,14 +75,14 @@ class GroupDeviation:
             True if the deviation is above the threshold (dev_threshold)
         '''
         
-        self._add_data_units(dt, x_units)
+        self.dffs = [append_to_df(self.dffs[i], dt, x) for i, x in enumerate(x_units)]
         deviations = []
         
         for uid in self.ids_target_units:
             detector = self.detectors[uid]
             
             try:
-                x, Xref = self.ref.get_target_and_reference(uid, dt, self.dffs)
+                x, Xref = self.pg.get_target_and_reference(uid, dt, self.dffs)
                 detector.fit(Xref)
                 devContext = detector.predict(dt, x)
             except (TestUnitError, NoRefGroupError):
@@ -99,29 +98,3 @@ class GroupDeviation:
         '''
         for uid in self.ids_target_units:
             self.detectors[uid].plot_deviations()
-        
-    # ===========================================
-    def _add_data_units(self, dt, x_units):
-        '''Method for private use only
-        Appends the current data of all units to dffs
-        '''
-        if self.dffs == []:
-            self.dffs = [ self._df_append(None, dt, x) for x in x_units ]
-        else:
-            for i, x in enumerate(x_units):
-                self.dffs[i] = self._df_append(self.dffs[i], dt, x)
-                
-        
-    # ===========================================
-    def _df_append(self, df, dt, x):
-        '''Method for private use only
-        Appends a new row to a DataFrame
-        '''
-        if df is None or len(df) == 0:
-            if x != []: return pd.DataFrame( data = [x], index = [dt] )
-            else: return pd.DataFrame( data = [], index = [] )
-        else:
-            if x != []: df.loc[dt] = x
-            return df
-
-    
