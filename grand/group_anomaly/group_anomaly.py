@@ -2,7 +2,7 @@ from .peer_grouping import PeerGrouping
 from grand import IndividualAnomalyInductive
 from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
-import pandas as pd
+import pandas as pd, matplotlib.pylab as plt
 
 class GroupAnomaly:
     '''Self monitoring for a group of units (machines)
@@ -94,7 +94,28 @@ class GroupAnomaly:
         
     # ===========================================
     def plot_deviations(self):
-        '''Plots the p-values and deviation levels over time.
+        '''Plots the anomaly score, deviation level and p-value, over time.
         '''
+
+        fig = plt.figure(0)
         for uid in self.ids_target_units:
-            self.detectors[uid].plot_deviations()
+            T, S = self.detectors[uid].T, self.detectors[uid].S
+            plt.title("Anomaly scores over time")
+            plt.xlabel("Time")
+            plt.ylabel("Anomaly score")
+            plt.plot(T, S)
+        fig.autofmt_xdate()
+
+        fig = plt.figure(1)
+        for uid in self.ids_target_units:
+            T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
+            plt.title("Deviation level and p-values over time")
+            plt.xlabel("Time")
+            plt.ylabel("Deviation level")
+            plt.scatter(T, P, alpha=0.25, marker=".")
+            plt.plot(T, M, label="Unit"+str(uid))
+        plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
+        plt.legend()
+        fig.autofmt_xdate()
+
+        plt.show()

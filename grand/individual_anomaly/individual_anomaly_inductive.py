@@ -124,16 +124,24 @@ class IndividualAnomalyInductive:
         
     # ===========================================
     def plot_deviations(self):
-        '''Plots the p-value and deviation level over time.
+        '''Plots the anomaly score, deviation level and p-value, over time.
         '''
 
-        plt.figure(0)
+        fig = plt.figure(0)
+        plt.title("Anomaly scores over time")
+        plt.xlabel("Time")
+        plt.ylabel("Anomaly score")
         plt.plot(self.T, self.S)
-        plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
+        fig.autofmt_xdate()
 
-        plt.figure(1)
-        plt.scatter(self.T, self.P, marker=".")
-        plt.plot(self.T, self.M)
-        plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
+        fig = plt.figure(1)
+        plt.title("Deviation level and p-values over time")
+        plt.xlabel("Time")
+        plt.ylabel("Deviation level")
+        plt.scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
+        plt.plot(self.T, self.M, label="deviation")
+        plt.axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
+        plt.legend()
+        fig.autofmt_xdate()
 
         plt.show()
