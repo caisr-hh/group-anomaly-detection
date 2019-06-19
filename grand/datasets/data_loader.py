@@ -3,6 +3,7 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join, dirname
 
+
 # ===================================================================================
 class DataCSVs:
     '''Helper class to read data from several units.
@@ -42,10 +43,19 @@ class DataCSVs:
             df = self.dfs[i]
             try: yield dt, df.loc[dt].values
             except: pass
-            
+
+
+# ===================================================================================
+def loader(foldname):
+    data_path = join(dirname(__file__), 'data', foldname)
+    return DataCSVs(data_path).load()
+
+
 # ===================================================================================
 def load_vehicles():
-    data_path = join(dirname(__file__), 'data', 'vehicles')
-    return DataCSVs(data_path).load()
-    
-    
+    return loader('vehicles')
+
+
+def load_artificial_toy(i):
+    return loader("toy" + str(int(i%8)))
+
