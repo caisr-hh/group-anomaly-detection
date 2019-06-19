@@ -1,3 +1,3 @@
-from cosmo.individual_anomaly.individual_anomaly_inductive import IndividualAnomalyInductive
-from cosmo.individual_anomaly.individual_anomaly_transductive import IndividualAnomalyTransductive
+from grand.individual_anomaly.individual_anomaly_inductive import IndividualAnomalyInductive
+from grand.individual_anomaly.individual_anomaly_transductive import IndividualAnomalyTransductive
 from .group_anomaly import GroupAnomaly

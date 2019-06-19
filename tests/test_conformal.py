@@ -1,5 +1,5 @@
-from cosmo.conformal import pvalue, martingale, Strangeness
-from cosmo.utils import InputValidationError, NotFittedError
+from grand.conformal import pvalue, martingale, Strangeness
+from grand.utils import InputValidationError, NotFittedError
 import unittest, numpy as np
 
 class TestConformal(unittest.TestCase):

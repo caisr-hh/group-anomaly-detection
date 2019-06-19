@@ -1,4 +1,4 @@
-from cosmo import utils
+from grand import utils
 
 from sklearn.neighbors import LocalOutlierFactor
 import numpy as np

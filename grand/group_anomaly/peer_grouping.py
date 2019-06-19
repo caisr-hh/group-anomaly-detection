@@ -1,4 +1,4 @@
-from cosmo import utils
+from grand import utils
 
 import pandas as pd, numpy as np
 

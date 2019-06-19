@@ -1,5 +1,5 @@
-from cosmo.datasets import load_vehicles
-from cosmo import IndividualAnomalyTransductive
+from grand.datasets import load_vehicles
+from grand import IndividualAnomalyTransductive
 
 if __name__ == '__main__':
 

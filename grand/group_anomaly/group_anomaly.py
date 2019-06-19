@@ -1,6 +1,6 @@
 from .peer_grouping import PeerGrouping
-from cosmo import IndividualAnomalyInductive
-from cosmo.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
+from grand import IndividualAnomalyInductive
+from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
 import pandas as pd
 

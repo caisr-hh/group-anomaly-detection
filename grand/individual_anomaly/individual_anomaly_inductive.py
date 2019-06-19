@@ -1,6 +1,6 @@
-from cosmo.conformal import pvalue, Strangeness
-from cosmo.utils import DeviationContext
-from cosmo import utils
+from grand.conformal import pvalue, Strangeness
+from grand.utils import DeviationContext
+from grand import utils
 
 import matplotlib.pylab as plt
 
