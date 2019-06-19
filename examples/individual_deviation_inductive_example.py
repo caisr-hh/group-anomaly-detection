@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     # At each time step dt, a data-point x comes from the stream of unit number 0
     for dt, x in dataset.stream_unit(0):
-        
         devContext = indev.predict(dt, x)
         
         st, pv, dev, isdev = devContext.strangeness, devContext.pvalue, devContext.deviation, devContext.is_deviating

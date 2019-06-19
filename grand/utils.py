@@ -15,10 +15,10 @@ class NoRefGroupError(Exception): pass
 # ===========================================
 def append_to_df(df, dt, x): # Appends a new row to a DataFrame
     if df is None or len(df) == 0:
-        if x != []: return pd.DataFrame( data = [x], index = [dt] )
+        if len(x) > 0: return pd.DataFrame( data = [x], index = [dt] )
         else: return pd.DataFrame( data = [], index = [] )
     else:
-        if x != []: df.loc[dt] = x
+        if len(x) > 0: df.loc[dt] = x
         return df
 
 

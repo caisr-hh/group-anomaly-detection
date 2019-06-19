@@ -116,8 +116,7 @@ class IndividualAnomalyTransductive:
             current = external
             historical = np.array(self.externals)
 
-            pm = 2 * np.std(historical) / 10
-            print(pm)
+            pm = 2 * np.std(historical) / 10 if len(historical) > 0 else 0
             X = self.df.loc[(current-pm <= historical) & (historical <= current+pm)].values
 
         if len(X) == 0:
