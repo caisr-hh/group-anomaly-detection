@@ -22,7 +22,11 @@ class DataCSVs:
         index = self.dfs[0].index
         self.dates = index.union_many([ df.index for df in self.dfs ]).to_pydatetime()
         return self
-        
+
+    # -------------------------------------
+    def get_nb_features(self):
+        return self.dfs[0].values.shape[1]
+
     # -------------------------------------
     def get_nb_units(self):
         return len(self.files_csv)

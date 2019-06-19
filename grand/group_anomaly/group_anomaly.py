@@ -1,4 +1,5 @@
 from .peer_grouping import PeerGrouping
+from .transformer import Transformer
 from grand import IndividualAnomalyInductive
 from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
@@ -32,8 +33,11 @@ class GroupAnomaly:
     dev_threshold : float
         Threshold in [0,1] on the deviation level
     '''
-    
-    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=20, dev_threshold=.6):
+
+    # TODO nb_features, nb_units can be eliminated and inferred from the first call to predict(..)
+    def __init__(self, nb_features, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15,
+                 non_conformity="median", k=20, dev_threshold=.6, transform=False, w_transform=20):
+        self.nb_features = nb_features
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
@@ -41,12 +45,17 @@ class GroupAnomaly:
         self.non_conformity = non_conformity
         self.k = k
         self.dev_threshold = dev_threshold
-        
-        self.dffs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
+        self.transform = transform
+        self.w_transform = w_transform
+
+        self.dfs_original = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
+        self.dfs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
         self.pg = PeerGrouping(self.w_ref_group)
         self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
+        self.transformers = [Transformer(dim=nb_features, w=w_transform) for _ in range(nb_units)]
         
     # ===========================================
+    # TODO assert len(x_units) == nb_units, or include the name of units with the data ...
     def predict(self, dt, x_units):
         '''Diagnoise each target unit based on its data x_units[uid] (where uid is in ids_target_units).
         Compute deviation level by comparing the data from the target unit (x_units[uid]) against the reference group.
@@ -74,15 +83,22 @@ class GroupAnomaly:
         is_deviating : boolean
             True if the deviation is above the threshold (dev_threshold)
         '''
-        
-        self.dffs = [append_to_df(self.dffs[i], dt, x) for i, x in enumerate(x_units)]
+
+        self.dfs_original = [append_to_df(self.dfs_original[i], dt, x) for i, x in enumerate(x_units)]
+
+        if self.transform:
+            x_units_tr = [transformer.transform(x) for x, transformer in zip(x_units, self.transformers)]
+            self.dfs = [append_to_df(self.dfs[i], dt, x) for i, x in enumerate(x_units_tr)]
+        else:
+            self.dfs = self.dfs_original
+
         deviations = []
         
         for uid in self.ids_target_units:
             detector = self.detectors[uid]
             
             try:
-                x, Xref = self.pg.get_target_and_reference(uid, dt, self.dffs)
+                x, Xref = self.pg.get_target_and_reference(uid, dt, self.dfs)
                 detector.fit(Xref)
                 devContext = detector.predict(dt, x)
             except (TestUnitError, NoRefGroupError):
@@ -98,24 +114,45 @@ class GroupAnomaly:
         '''
 
         fig = plt.figure(0)
+        plt.title("Anomaly scores over time")
+        plt.xlabel("Time")
+        plt.ylabel("Anomaly score")
         for uid in self.ids_target_units:
             T, S = self.detectors[uid].T, self.detectors[uid].S
-            plt.title("Anomaly scores over time")
-            plt.xlabel("Time")
-            plt.ylabel("Anomaly score")
             plt.plot(T, S)
         fig.autofmt_xdate()
 
         fig = plt.figure(1)
+        plt.title("Deviation level and p-values over time")
+        plt.xlabel("Time")
+        plt.ylabel("Deviation level")
         for uid in self.ids_target_units:
             T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
-            plt.title("Deviation level and p-values over time")
-            plt.xlabel("Time")
-            plt.ylabel("Deviation level")
             plt.scatter(T, P, alpha=0.25, marker=".")
             plt.plot(T, M, label="Unit"+str(uid))
         plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
         plt.legend()
         fig.autofmt_xdate()
+
+        fig = plt.figure(2)
+        plt.title("Original data")
+        plt.xlabel("Time")
+        plt.ylabel("Feature 0")
+        for uid in self.ids_target_units:
+            df_original = self.dfs_original[uid]
+            plt.plot(df_original.index, df_original.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
+        plt.legend()
+        fig.autofmt_xdate()
+
+        if self.transform:
+            fig = plt.figure(3)
+            plt.title("Transformed data")
+            plt.xlabel("Time")
+            plt.ylabel("Feature 0")
+            for uid in self.ids_target_units:
+                df = self.dfs[uid]
+                plt.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
+            plt.legend()
+            fig.autofmt_xdate()
 
         plt.show()
