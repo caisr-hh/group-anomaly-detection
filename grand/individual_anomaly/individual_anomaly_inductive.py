@@ -1,8 +1,8 @@
 from grand.conformal import pvalue, Strangeness
-from grand.utils import DeviationContext
+from grand.utils import DeviationContext, append_to_df
 from grand import utils
 
-import matplotlib.pylab as plt
+import matplotlib.pylab as plt, pandas as pd
 
 class IndividualAnomalyInductive:
     '''Deviation detection for a single/individual unit
@@ -37,7 +37,8 @@ class IndividualAnomalyInductive:
         
         self.mart = 0
         self.marts = [0, 0, 0]
-        
+
+        self.df = pd.DataFrame(data=[], index=[])
         
     # ===========================================
     def fit(self, X):
@@ -81,7 +82,8 @@ class IndividualAnomalyInductive:
             Normalized deviation level updated based on the last w_martingale steps
         '''
         
-        self.T.append(dtime) # TODO: this is not necessarily required
+        self.T.append(dtime)
+        self.df = append_to_df(self.df, dtime, x)
         
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
@@ -141,6 +143,16 @@ class IndividualAnomalyInductive:
         plt.scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
         plt.plot(self.T, self.M, label="deviation")
         plt.axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
+        plt.legend()
+        fig.autofmt_xdate()
+
+        fig = plt.figure(2)
+        plt.title("Data")
+        plt.xlabel("Time")
+        plt.ylabel("Feature value")
+        plt.plot(self.df.index, self.df.values[:, 0], marker=".", label="Feature 0")
+        if self.df.values.shape[1] > 1:
+            plt.plot(self.df.index, self.df.values[:, 1], marker=".", label="Feature 1")
         plt.legend()
         fig.autofmt_xdate()
 
