@@ -6,7 +6,7 @@ if __name__ == '__main__':
     # Streams data from several units (vehicles) over time
     dataset = load_artificial_toy(0) #load_vehicles()
 
-    nb_units = dataset.get_nb_units() # 19 vehicles in the load_vehicles() dataset
+    nb_units = dataset.get_nb_units() # e.g. 19 vehicles in the load_vehicles() dataset
 
     # Create an instance of GroupAnomaly
     gdev = GroupAnomaly(nb_units=nb_units,          # Number of units (vehicles)
