@@ -3,11 +3,10 @@ from grand.conformal import pvalue
 
 
 class Transformer:
-    def __init__(self, dim, w=20):
-        self.dim = dim
+    def __init__(self, w=20):
         self.w = w
-        self.X = np.empty((0, dim))
-        self.P = np.empty((0, dim))
+        self.X = None
+        self.P = None
         self.MIN_HISTORY_SIZE = 10
 
     def aggregate(self, i):
@@ -17,6 +16,10 @@ class Transformer:
     def transform(self, x):
         if len(x) == 0:
             return x
+
+        if self.X is None and self.P is None:
+            self.X = np.empty((0, len(x)))
+            self.P = np.empty((0, len(x)))
 
         if len(self.X) < self.MIN_HISTORY_SIZE:
             p_arr = [0.5 for i in range(len(x))]

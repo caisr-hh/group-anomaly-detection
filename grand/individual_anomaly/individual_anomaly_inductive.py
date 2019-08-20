@@ -3,6 +3,8 @@ from grand.utils import DeviationContext, append_to_df
 from grand import utils
 
 import matplotlib.pylab as plt, pandas as pd
+from pandas.plotting import register_matplotlib_converters
+
 
 class IndividualAnomalyInductive:
     '''Deviation detection for a single/individual unit
@@ -129,31 +131,29 @@ class IndividualAnomalyInductive:
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
 
-        fig = plt.figure(0)
-        plt.title("Anomaly scores over time")
-        plt.xlabel("Time")
-        plt.ylabel("Anomaly score")
-        plt.plot(self.T, self.S)
-        fig.autofmt_xdate()
+        register_matplotlib_converters()
+        fig, (ax0, ax1, ax2) = plt.subplots(3)
 
-        fig = plt.figure(1)
-        plt.title("Deviation level and p-values over time")
-        plt.xlabel("Time")
-        plt.ylabel("Deviation level")
-        plt.scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
-        plt.plot(self.T, self.M, label="deviation")
-        plt.axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
-        plt.legend()
-        fig.autofmt_xdate()
+        ax0.set_title("Anomaly scores over time")
+        ax0.set_xlabel("Time")
+        ax0.set_ylabel("Anomaly score")
+        ax0.plot(self.T, self.S)
 
-        fig = plt.figure(2)
-        plt.title("Data")
-        plt.xlabel("Time")
-        plt.ylabel("Feature value")
-        plt.plot(self.df.index, self.df.values[:, 0], marker=".", label="Feature 0")
+        ax1.set_title("Deviation level and p-values over time")
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Deviation level")
+        ax1.scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
+        ax1.plot(self.T, self.M, label="deviation")
+        ax1.axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
+        ax1.legend()
+
+        ax2.set_title("Data")
+        ax2.set_xlabel("Time")
+        ax2.set_ylabel("Feature value")
+        ax2.plot(self.df.index, self.df.values[:, 0], marker=".", label="Feature 0")
         if self.df.values.shape[1] > 1:
-            plt.plot(self.df.index, self.df.values[:, 1], marker=".", label="Feature 1")
-        plt.legend()
-        fig.autofmt_xdate()
+            ax2.plot(self.df.index, self.df.values[:, 1], marker=".", label="Feature 1")
+        ax2.legend()
 
+        fig.autofmt_xdate()
         plt.show()

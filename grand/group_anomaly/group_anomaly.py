@@ -4,6 +4,7 @@ from grand import IndividualAnomalyInductive
 from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 
 import pandas as pd, matplotlib.pylab as plt
+from pandas.plotting import register_matplotlib_converters
 
 class GroupAnomaly:
     '''Self monitoring for a group of units (machines)
@@ -35,9 +36,8 @@ class GroupAnomaly:
     '''
 
     # TODO nb_features, nb_units can be eliminated and inferred from the first call to predict(..)
-    def __init__(self, nb_features, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15,
+    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15,
                  non_conformity="median", k=20, dev_threshold=.6, transform=False, w_transform=20):
-        self.nb_features = nb_features
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
@@ -52,7 +52,7 @@ class GroupAnomaly:
         self.dfs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
         self.pg = PeerGrouping(self.w_ref_group)
         self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
-        self.transformers = [Transformer(dim=nb_features, w=w_transform) for _ in range(nb_units)]
+        self.transformers = [Transformer(w=w_transform) for _ in range(nb_units)]
         
     # ===========================================
     # TODO assert len(x_units) == nb_units, or include the name of units with the data ...
@@ -112,47 +112,41 @@ class GroupAnomaly:
     def plot_deviations(self):
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
+        register_matplotlib_converters()
+        fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2)
 
-        fig = plt.figure(0)
-        plt.title("Anomaly scores over time")
-        plt.xlabel("Time")
-        plt.ylabel("Anomaly score")
+        ax0.set_title("Anomaly scores over time")
+        ax0.set_xlabel("Time")
+        ax0.set_ylabel("Anomaly score")
         for uid in self.ids_target_units:
             T, S = self.detectors[uid].T, self.detectors[uid].S
-            plt.plot(T, S)
-        fig.autofmt_xdate()
+            ax0.plot(T, S)
 
-        fig = plt.figure(1)
-        plt.title("Deviation level and p-values over time")
-        plt.xlabel("Time")
-        plt.ylabel("Deviation level")
+        ax1.set_title("Deviation level and p-values over time")
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Deviation level")
         for uid in self.ids_target_units:
             T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
-            plt.scatter(T, P, alpha=0.25, marker=".")
-            plt.plot(T, M, label="Unit"+str(uid))
-        plt.axhline(y=self.dev_threshold, color='r', linestyle='--')
-        plt.legend()
-        fig.autofmt_xdate()
+            ax1.scatter(T, P, alpha=0.25, marker=".")
+            ax1.plot(T, M, label="Unit"+str(uid))
+        ax1.axhline(y=self.dev_threshold, color='r', linestyle='--')
+        ax1.legend()
 
-        fig = plt.figure(2)
-        plt.title("Original data")
-        plt.xlabel("Time")
-        plt.ylabel("Feature 0")
+        ax2.set_title("Original data")
+        ax2.set_xlabel("Time")
+        ax2.set_ylabel("Feature 0")
         for uid in self.ids_target_units:
             df_original = self.dfs_original[uid]
-            plt.plot(df_original.index, df_original.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
-        plt.legend()
+            ax2.plot(df_original.index, df_original.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
+        ax2.legend()
+
+        ax3.set_title("Transformed data")
+        ax3.set_xlabel("Time")
+        ax3.set_ylabel("Feature 0")
+        for uid in self.ids_target_units:
+            df = self.dfs[uid]
+            ax3.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
+        ax3.legend()
+
         fig.autofmt_xdate()
-
-        if self.transform:
-            fig = plt.figure(3)
-            plt.title("Transformed data")
-            plt.xlabel("Time")
-            plt.ylabel("Feature 0")
-            for uid in self.ids_target_units:
-                df = self.dfs[uid]
-                plt.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
-            plt.legend()
-            fig.autofmt_xdate()
-
         plt.show()
