@@ -1,5 +1,5 @@
 from grand.conformal import pvalue, Strangeness
-from grand.utils import DeviationContext, InputValidationError, append_to_df
+from grand.utils import DeviationContext, InputValidationError, append_to_df, dt2num
 from grand import utils
 
 import matplotlib.pylab as plt, pandas as pd, numpy as np
@@ -93,32 +93,20 @@ class IndividualAnomalyTransductive:
         and fits a model to this reference data.
         '''
 
-        if self.ref_group == "week":
-            current = dtime.isocalendar()[1]
-            historical = np.array([dt.isocalendar()[1] for dt in self.df.index])
-            X = self.df.loc[(current == historical)].values
-
-        elif self.ref_group == "month":
-            current = dtime.month
-            historical = np.array([dt.month for dt in self.df.index])
-            X = self.df.loc[(current == historical)].values
-
-        elif self.ref_group == "season":
-            season = {12:1, 1:1, 2:1, 3:2, 4:2, 5:2, 6:3, 7:3, 8:3, 9:4, 10:4, 11:4}
-            get_season = lambda dt: season[dt.month]
-            current = get_season(dtime)
-            historical = np.array([get_season(dt) for dt in self.df.index])
-            X = self.df.loc[(current == historical)].values
-
-        else: # self.ref_group == "external":
+        if self.ref_group == "external":
             if external is None:
-                raise InputValidationError("When ref_group is set to 'external', the parameter external must specified.")
-
+                raise InputValidationError("When ref_group is set to 'external', the parameter external must be specified.")
             current = external
             historical = np.array(self.externals)
-
             pm = 2 * np.std(historical) / 10 if len(historical) > 0 else 0
             X = self.df.loc[(current-pm <= historical) & (historical <= current+pm)].values
+        else:
+            df_sub = self.df
+            for criterion in self.ref_group:
+                current = dt2num(dtime, criterion)
+                historical = np.array([dt2num(dt, criterion) for dt in df_sub.index])
+                df_sub = df_sub.loc[(current == historical)]
+            X = df_sub.values
 
         if len(X) == 0:
             X = [x]
@@ -163,7 +151,7 @@ class IndividualAnomalyTransductive:
         '''
 
         register_matplotlib_converters()
-        fig, (ax0, ax1, ax2) = plt.subplots(3)
+        fig, (ax0, ax1, ax2) = plt.subplots(3, sharex="row")
 
         ax0.set_title("Anomaly scores over time")
         ax0.set_xlabel("Time")

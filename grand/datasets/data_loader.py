@@ -63,3 +63,7 @@ def load_vehicles():
 def load_artificial_toy(i):
     return loader("toy" + str(int(i%8)))
 
+
+def load_taxi():
+    return loader("taxi")
+

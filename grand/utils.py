@@ -23,6 +23,25 @@ def append_to_df(df, dt, x): # Appends a new row to a DataFrame
 
 
 # ===========================================
+def dt2num(dt, criterion):
+        if criterion == "hour-of-day":
+            return dt.hour
+        elif criterion == "day-of-week":
+            return dt.weekday()
+        elif criterion == "day-of-month":
+            return dt.day
+        elif criterion == "week-of-year":
+            return dt.isocalendar()[1]
+        elif criterion == "month-of-year":
+            return dt.month
+        elif criterion == "season-of-year":
+            season = {12: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4}
+            return season[dt.month]
+        else:
+            raise InputValidationError("Unknown criterion {} in ref_group.".format(criterion))
+
+
+# ===========================================
 def validate_measure_str(string):
     strings = ["median", "knn", "lof"]
     if string not in strings:
@@ -83,13 +102,14 @@ def validate_individual_deviation_params(w_martingale, non_conformity, k, dev_th
     if not (0 <= dev_threshold <= 1):
         raise InputValidationError("dev_threshold should be in [0, 1]. Given dev_threshold = {}".format(dev_threshold))
 
-    strings = ["week", "month", "season", "external"]
-    if (ref_group is not None) and (ref_group not in strings):
-        raise InputValidationError("non_conformity should be one of {}. Given non_conformity = '{}'".format(strings, ref_group))
+    strings = ["hour-of-day", "day-of-week", "day-of-month", "week-of-year", "month-of-year", "season-of-year"]
+    if (ref_group is not None) and (ref_group != "external") and (not isinstance(ref_group, (list, np.ndarray))):
+        raise InputValidationError("ref_group should be either a list containing one or many of {}, or the string 'external'. "
+                                   "Given ref_group = '{}'".format(strings, ref_group))
 
         
 def validate_fit_input(X):
-    if len(X) == 0 or not isinstance(X,(list, np.ndarray)):
+    if len(X) == 0 or not isinstance(X, (list, np.ndarray)):
         raise InputValidationError("X must be a non empty array-like of shape (n_samples, n_features)")
 
 

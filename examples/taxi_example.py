@@ -1,10 +1,9 @@
-from grand.datasets import load_vehicles, load_artificial_toy
+from grand.datasets import load_taxi
 from grand import IndividualAnomalyTransductive
 
 if __name__ == '__main__':
 
-    # Get data from one unit (vehicle)
-    dataset = load_artificial_toy(0) #load_vehicles()
+    dataset = load_taxi()
 
     # Create an instance of IndividualAnomalyTransductive
     indev = IndividualAnomalyTransductive(
@@ -12,7 +11,7 @@ if __name__ == '__main__':
         non_conformity="median",    # Strangeness measure: "median" or "knn" or "lof"
         k=50,                       # Used if non_conformity is "knn"
         dev_threshold=.6,           # Threshold on the deviation level
-        ref_group=["month-of-year"]) # c; possible strings are:
+        ref_group=["hour-of-day", "day-of-week"]) # criteria for reference group construction; possible strings are:
         # ["hour-of-day", "day-of-week", "day-of-month", "week-of-year", "month-of-year", "season-of-year"]
 
     # At each time step dt, a data-point x comes from the stream of unit number 0
