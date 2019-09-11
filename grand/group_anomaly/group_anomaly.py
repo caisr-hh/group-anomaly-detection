@@ -109,15 +109,15 @@ class GroupAnomaly:
         return deviations
         
     # ===========================================
-    def plot_deviations(self):
+    def plot_deviations(self, figsize=None):
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
         register_matplotlib_converters()
-        fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2)
+        fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=figsize)
 
-        ax0.set_title("Anomaly scores over time")
+        ax0.set_title("Strangeness scores over time")
         ax0.set_xlabel("Time")
-        ax0.set_ylabel("Anomaly score")
+        ax0.set_ylabel("Strangeness score")
         for uid in self.ids_target_units:
             T, S = self.detectors[uid].T, self.detectors[uid].S
             ax0.plot(T, S)

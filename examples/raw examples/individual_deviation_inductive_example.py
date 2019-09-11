@@ -24,4 +24,4 @@ if __name__ == '__main__':
         print("Time: {} ==> strangeness: {}, p-value: {}, deviation: {} ({})".format(dt, st, pv, dev, "high" if isdev else "low"))
 
     # Plot p-values and deviation level over time
-    indev.plot_deviations()
+    indev.plot_deviations(figsize=(10,5))

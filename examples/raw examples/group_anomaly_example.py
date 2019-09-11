@@ -31,4 +31,4 @@ if __name__ == '__main__':
             devCon.pvalue, devCon.deviation, "high" if devCon.is_deviating else "low"))
 
     # Plot p-values and deviation levels over time
-    gdev.plot_deviations()
+    gdev.plot_deviations(figsize=(10,5))
