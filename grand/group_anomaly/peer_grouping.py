@@ -1,5 +1,12 @@
-from grand import utils
+"""Provides ways to group similar systems together.
+Status: under development.
+"""
 
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
+from grand import utils
 import pandas as pd, numpy as np
 
 class PeerGrouping:

@@ -1,3 +1,12 @@
+"""A group-based anomaly detection model (for a group of systems).
+To detect anomalies, the GroupAnomaly model compares the data from each
+target system against a group of other similar systems.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 from .peer_grouping import PeerGrouping
 from .transformer import Transformer
 from grand import IndividualAnomalyInductive

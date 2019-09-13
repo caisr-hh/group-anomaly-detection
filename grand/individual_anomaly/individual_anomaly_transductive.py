@@ -1,3 +1,12 @@
+"""A transductive anomaly detection model for an individual system.
+To detect anomalies, the IndividualAnomalyTransductive model compares the data from
+a system against its own past historical data from the stream.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 from grand.conformal import pvalue, Strangeness
 from grand.utils import DeviationContext, InputValidationError, append_to_df, dt2num
 from grand import utils

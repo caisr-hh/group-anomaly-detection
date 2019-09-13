@@ -1,3 +1,12 @@
+"""Provides an easy way to load data from several CSV files in a repository and stream it.
+Each CSV file contains the dataset of one unit. The class provides an easy way to stream the data from
+all units.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 import pandas as pd, numpy as np, matplotlib.pyplot as plt
 from pandas.plotting import register_matplotlib_converters
 from os import listdir
@@ -75,7 +84,7 @@ def load_vehicles():
     return loader('vehicles')
 
 
-def load_artificial_toy(i):
+def load_artificial(i):
     return loader("toy" + str(int(i%8)))
 
 

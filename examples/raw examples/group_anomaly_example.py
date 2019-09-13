@@ -1,10 +1,10 @@
-from grand.datasets import load_vehicles, load_artificial_toy
+from grand.datasets import load_vehicles, load_artificial
 from grand import GroupAnomaly
 
 if __name__ == '__main__':
     
     # Streams data from several units (vehicles) over time
-    dataset = load_artificial_toy(0) #load_vehicles()
+    dataset = load_artificial(0) #load_vehicles()
 
     nb_units = dataset.get_nb_units() # e.g. 19 vehicles in the load_vehicles() dataset
 

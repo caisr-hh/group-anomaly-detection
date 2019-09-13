@@ -1,10 +1,10 @@
-from grand.datasets import load_vehicles, load_artificial_toy
+from grand.datasets import load_vehicles, load_artificial
 from grand import IndividualAnomalyInductive
 
 if __name__ == '__main__':
     
     # Get data from one unit (vehicle)
-    dataset = load_artificial_toy(0) #load_vehicles()
+    dataset = load_artificial(0) #load_vehicles()
     unit1_train = [ x for dt, x in dataset.stream_unit(1) ] # we use unit number 1 for training
 
     # Create an instance of IndividualAnomalyInductive

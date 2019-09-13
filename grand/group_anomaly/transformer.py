@@ -1,3 +1,11 @@
+"""Provides ways to transform the data of each system, so that the data from
+various systems is more fairly comparable.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 import numpy as np
 from grand.conformal import pvalue
 

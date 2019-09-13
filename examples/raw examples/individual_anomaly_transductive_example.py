@@ -1,10 +1,10 @@
-from grand.datasets import load_vehicles, load_artificial_toy
+from grand.datasets import load_vehicles, load_artificial
 from grand import IndividualAnomalyTransductive
 
 if __name__ == '__main__':
 
     # Get data from one unit (vehicle)
-    dataset = load_artificial_toy(0) #load_vehicles()
+    dataset = load_artificial(0) #load_vehicles()
 
     # Create an instance of IndividualAnomalyTransductive
     indev = IndividualAnomalyTransductive(

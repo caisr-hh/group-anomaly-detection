@@ -1,3 +1,10 @@
+"""Provide some utility functions.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 from collections import namedtuple
 import numpy as np, pandas as pd
 

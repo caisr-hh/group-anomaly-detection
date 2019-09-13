@@ -1,3 +1,12 @@
+"""An inductive anomaly detection model for an individual system.
+To detect anomalies, the IndividualAnomalyInductive model compares the data from
+a system against a fixed reference dataset.
+"""
+
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
 from grand.conformal import pvalue, Strangeness
 from grand.utils import DeviationContext, append_to_df
 from grand import utils

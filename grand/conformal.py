@@ -1,7 +1,16 @@
-from grand import utils
+"""Provide functions for conformal anomaly detection.
+This module implements functions to compute non-conformity measures, p-values,
+and tests for the uniformity of p-values.
+"""
 
+__author__ = "Mohamed-Rafik Bouguelia"
+__license__ = "MIT"
+__email__ = "mohamed-rafik.bouguelia@hh.se"
+
+from grand import utils
 from sklearn.neighbors import LocalOutlierFactor
 import numpy as np
+
 
 # ==============================================
 def pvalue(val, values):
@@ -19,7 +28,8 @@ def pvalue(val, values):
     
     utils.validate_list_not_empty(values)
     return np.mean([1. if v > val else 0. for v in values])
-    
+
+
 # ==============================================
 def martingale(pvalues):
     '''Additive martingale over the last w steps.
