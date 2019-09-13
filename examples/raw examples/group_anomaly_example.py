@@ -16,8 +16,8 @@ if __name__ == '__main__':
                         non_conformity="median",    # Non-conformity (strangeness) measure: "median" or "knn" or "lof"
                         k=50,                       # Used if non_conformity is "knn"
                         dev_threshold=.6,           # Threshold on the deviation level
-                        transform = True,           # Transform each unit's data separately to make them comparable
-                        w_transform = 30)           # A window size used when transform is True
+                        transformer = None,         # Transform each unit's data separately to make them comparable
+                        w_transform = 30)           # A window size used with transformer
 
     # At each time dt, x_units contains data from all units.
     # Each data-point x_units[i] comes from the i'th unit.

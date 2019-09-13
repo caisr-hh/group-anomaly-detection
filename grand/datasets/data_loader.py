@@ -1,5 +1,5 @@
-import pandas as pd
-import numpy as np
+import pandas as pd, numpy as np, matplotlib.pyplot as plt
+from pandas.plotting import register_matplotlib_converters
 from os import listdir
 from os.path import isfile, join, dirname
 
@@ -47,6 +47,21 @@ class DataCSVs:
             df = self.dfs[i]
             try: yield dt, df.loc[dt].values
             except: pass
+
+    # -------------------------------------
+    def plot(self, icol=0, limit=10, figsize=None):
+        register_matplotlib_converters()
+        fig, ax = plt.subplots(figsize = figsize)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Feature {}".format(icol))
+
+        for i, df in enumerate(self.dfs):
+            if i == limit: break
+            ax.plot(df.index, df.values[:, icol], label="Unit {}".format(i))
+
+        plt.legend()
+        fig.autofmt_xdate()
+        plt.show()
 
 
 # ===================================================================================

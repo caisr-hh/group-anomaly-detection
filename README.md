@@ -1,5 +1,5 @@
 # GRAND
-GRAND: Group-based Anomaly Detection for Large-Scale Monitoring of Complex Systems
+GRAND: Group-based Anomaly Detection for Self-Monitoring of Complex Systems
 
 This is an implementation a group-based anomaly detection method. It allows to autonomously monitor a system (unit) that generates data over time, by comparing it against its own past history, or against a group of other similar systems (units). It detects anomalies/deviations in a streaming fashion while accounting for concept drift which is due to external factors that can affect the data.
 
@@ -13,6 +13,9 @@ You can also install the package with a symlink, so that changes to the source f
 ```
 $ pip install -e .
 ```
+
+# Examples
+For intuitive examples and explanations, please check the [Jupyter notebook](examples/notebooks/examples.ipynb) at *./examples/notebooks/examples.ipynb*
 
 # Usage
 The library can perform individual anomaly detection (where a system is compared against it's own past history), or group-based anomaly detection (where the system's behaviour is modeled and compared against the behaviour of other systems). 

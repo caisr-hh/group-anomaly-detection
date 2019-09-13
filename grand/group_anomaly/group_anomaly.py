@@ -35,9 +35,8 @@ class GroupAnomaly:
         Threshold in [0,1] on the deviation level
     '''
 
-    # TODO nb_features, nb_units can be eliminated and inferred from the first call to predict(..)
     def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15,
-                 non_conformity="median", k=20, dev_threshold=.6, transform=False, w_transform=20):
+                 non_conformity="median", k=20, dev_threshold=.6, transformer="pvalue", w_transform=30):
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
@@ -45,14 +44,14 @@ class GroupAnomaly:
         self.non_conformity = non_conformity
         self.k = k
         self.dev_threshold = dev_threshold
-        self.transform = transform
+        self.transformer = transformer
         self.w_transform = w_transform
 
         self.dfs_original = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
         self.dfs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
         self.pg = PeerGrouping(self.w_ref_group)
         self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
-        self.transformers = [Transformer(w=w_transform) for _ in range(nb_units)]
+        self.transformers = [Transformer(w_transform, transformer) for _ in range(nb_units)]
         
     # ===========================================
     # TODO assert len(x_units) == nb_units, or include the name of units with the data ...
@@ -86,11 +85,8 @@ class GroupAnomaly:
 
         self.dfs_original = [append_to_df(self.dfs_original[i], dt, x) for i, x in enumerate(x_units)]
 
-        if self.transform:
-            x_units_tr = [transformer.transform(x) for x, transformer in zip(x_units, self.transformers)]
-            self.dfs = [append_to_df(self.dfs[i], dt, x) for i, x in enumerate(x_units_tr)]
-        else:
-            self.dfs = self.dfs_original
+        x_units_tr = [transformer.transform(x) for x, transformer in zip(x_units, self.transformers)]
+        self.dfs = [append_to_df(self.dfs[i], dt, x) for i, x in enumerate(x_units_tr)]
 
         deviations = []
         
@@ -113,7 +109,7 @@ class GroupAnomaly:
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
         register_matplotlib_converters()
-        fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=figsize)
+        fig, (ax0, ax1, ax2) = plt.subplots(3, figsize=figsize)
 
         ax0.set_title("Strangeness scores over time")
         ax0.set_xlabel("Time")
@@ -127,26 +123,18 @@ class GroupAnomaly:
         ax1.set_ylabel("Deviation level")
         for uid in self.ids_target_units:
             T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
-            ax1.scatter(T, P, alpha=0.25, marker=".")
+            # ax1.scatter(T, P, alpha=0.25, marker=".")
             ax1.plot(T, M, label="Unit"+str(uid))
         ax1.axhline(y=self.dev_threshold, color='r', linestyle='--')
         ax1.legend()
 
-        ax2.set_title("Original data")
+        ax2.set_title("Transformed data")
         ax2.set_xlabel("Time")
         ax2.set_ylabel("Feature 0")
         for uid in self.ids_target_units:
-            df_original = self.dfs_original[uid]
-            ax2.plot(df_original.index, df_original.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
-        ax2.legend()
-
-        ax3.set_title("Transformed data")
-        ax3.set_xlabel("Time")
-        ax3.set_ylabel("Feature 0")
-        for uid in self.ids_target_units:
             df = self.dfs[uid]
-            ax3.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
-        ax3.legend()
+            ax2.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
+        ax2.legend()
 
         fig.autofmt_xdate()
         plt.show()
