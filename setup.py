@@ -1,11 +1,17 @@
 from setuptools import setup, find_packages
-import os, numpy
+import os, re
+
+verfile = ".{}grand{}_version.py".format(os.sep, os.sep)
+verstrline = open(verfile, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+version_str = mo.group(1)
 
 data_path = '.{}grand{}datasets{}data'.format(os.sep, os.sep, os.sep)
 data_files = [ 'datasets' + os.sep + 'data' + os.sep + dirname + os.sep + '*' for dirname in os.listdir(data_path) ]
 
 setup(name='grand',
-    version='0.1',
+    version=version_str,
     description='GRAND: Group-based Anomaly Detection for Large-Scale Monitoring of Complex Systems',
     url='https://github.com/caisr-hh',
     author='Mohamed-Rafik Bouguelia - Center for Applied Intelligent Systems Research (CAISR)',

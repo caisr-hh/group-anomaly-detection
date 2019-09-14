@@ -118,7 +118,11 @@ class GroupAnomaly:
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
         register_matplotlib_converters()
-        fig, (ax0, ax1, ax2) = plt.subplots(3, figsize=figsize)
+
+        if self.transformer == "mean_pvalue":
+            fig, (ax0, ax2) = plt.subplots(2, figsize=figsize)
+        else:
+            fig, (ax0, ax1, ax2) = plt.subplots(3, figsize=figsize)
 
         ax0.set_title("Strangeness scores over time")
         ax0.set_xlabel("Time")
@@ -127,15 +131,16 @@ class GroupAnomaly:
             T, S = self.detectors[uid].T, self.detectors[uid].S
             ax0.plot(T, S)
 
-        ax1.set_title("Deviation level and p-values over time")
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Deviation level")
-        for uid in self.ids_target_units:
-            T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
-            # ax1.scatter(T, P, alpha=0.25, marker=".")
-            ax1.plot(T, M, label="Unit"+str(uid))
-        ax1.axhline(y=self.dev_threshold, color='r', linestyle='--')
-        ax1.legend()
+        if self.transformer != "mean_pvalue":
+            ax1.set_title("Deviation level and p-values over time")
+            ax1.set_xlabel("Time")
+            ax1.set_ylabel("Deviation level")
+            for uid in self.ids_target_units:
+                T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
+                # ax1.scatter(T, P, alpha=0.25, marker=".")
+                ax1.plot(T, M, label="Unit"+str(uid))
+            ax1.axhline(y=self.dev_threshold, color='r', linestyle='--')
+            ax1.legend()
 
         ax2.set_title("Transformed data")
         ax2.set_xlabel("Time")
