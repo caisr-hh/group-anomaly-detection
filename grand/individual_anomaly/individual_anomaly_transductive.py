@@ -34,7 +34,7 @@ class IndividualAnomalyTransductive:
         Threshold in [0,1] on the deviation level
     '''
 
-    def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6, ref_group="month"):
+    def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6, ref_group="month", external_percentage=0.3):
         utils.validate_individual_deviation_params(w_martingale, non_conformity, k, dev_threshold, ref_group)
 
         self.w_martingale = w_martingale
@@ -42,6 +42,7 @@ class IndividualAnomalyTransductive:
         self.k = k
         self.dev_threshold = dev_threshold
         self.ref_group = ref_group
+        self.external_percentage = external_percentage
 
         self.strg = Strangeness(non_conformity, k)
         self.scores = []
@@ -107,8 +108,10 @@ class IndividualAnomalyTransductive:
                 raise InputValidationError("When ref_group is set to 'external', the parameter external must be specified.")
             current = external
             historical = np.array(self.externals)
-            pm = 2 * np.std(historical) / 10 if len(historical) > 0 else 0
-            X = self.df.loc[(current-pm <= historical) & (historical <= current+pm)].values
+
+            k = int( len(self.df) * self.external_percentage )
+            ids = np.argsort( np.abs(historical - current) )[:k]
+            X = self.df.iloc[ids].values
         else:
             df_sub = self.df
             for criterion in self.ref_group:
