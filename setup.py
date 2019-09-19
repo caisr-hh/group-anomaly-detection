@@ -20,5 +20,5 @@ setup(name='grand',
     packages=find_packages(),
     package_data={'grand':data_files},
     install_requires=['matplotlib>=2.1.0', 'numpy>=1.13.3', 'pandas>=0.22.0', 'scipy>=1.0.0', 'scikit-learn>=0.20.0'],
-    zip_safe=False)
-    
+    zip_safe=False,
+    python_requires='>=3.4')
