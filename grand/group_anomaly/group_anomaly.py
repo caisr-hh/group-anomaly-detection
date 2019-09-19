@@ -11,7 +11,7 @@ from .peer_grouping import PeerGrouping
 from .transformer import Transformer
 from grand import IndividualAnomalyInductive
 from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
-
+from grand import utils
 import pandas as pd, matplotlib.pylab as plt
 from pandas.plotting import register_matplotlib_converters
 
@@ -114,7 +114,7 @@ class GroupAnomaly:
         return deviations
         
     # ===========================================
-    def plot_deviations(self, figsize=None):
+    def plot_deviations(self, figsize=None, savefig=None):
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
         register_matplotlib_converters()
@@ -151,4 +151,9 @@ class GroupAnomaly:
         ax2.legend()
 
         fig.autofmt_xdate()
-        plt.show()
+
+        if savefig is None:
+            plt.show()
+        else:
+            figpathname = utils.create_directory_from_path(savefig)
+            plt.savefig(figpathname)

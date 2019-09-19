@@ -6,7 +6,7 @@ __license__ = "MIT"
 __email__ = "mohamed-rafik.bouguelia@hh.se"
 
 from collections import namedtuple
-import numpy as np, pandas as pd
+import numpy as np, pandas as pd, pathlib as pl, os
 
 # ===========================================
 DeviationContext = namedtuple('DeviationContext', 'strangeness pvalue deviation is_deviating')
@@ -28,6 +28,14 @@ def append_to_df(df, dt, x): # Appends a new row to a DataFrame
         if len(x) > 0: df.loc[dt] = x
         return df
 
+
+# ===========================================
+def create_directory_from_path(pathname):
+    pathname = pl.Path(pathname).resolve()
+    directory = os.path.dirname(os.path.abspath(pathname))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return pathname
 
 # ===========================================
 def dt2num(dt, criterion):

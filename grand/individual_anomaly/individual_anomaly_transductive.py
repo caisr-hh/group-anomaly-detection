@@ -10,7 +10,6 @@ __email__ = "mohamed-rafik.bouguelia@hh.se"
 from grand.conformal import pvalue, Strangeness
 from grand.utils import DeviationContext, InputValidationError, append_to_df, dt2num
 from grand import utils
-
 import matplotlib.pylab as plt, pandas as pd, numpy as np
 from pandas.plotting import register_matplotlib_converters
 
@@ -163,7 +162,7 @@ class IndividualAnomalyTransductive:
         return pd.DataFrame(index=self.T, data=stats, columns=["strangeness", "deviation", "pvalue"])
 
     # ===========================================
-    def plot_deviations(self, figsize=None):
+    def plot_deviations(self, figsize=None, savefig=None):
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
 
@@ -184,4 +183,9 @@ class IndividualAnomalyTransductive:
         ax1.legend()
 
         fig.autofmt_xdate()
-        plt.show()
+
+        if savefig is None:
+            plt.show()
+        else:
+            figpathname = utils.create_directory_from_path(savefig)
+            plt.savefig(figpathname)
