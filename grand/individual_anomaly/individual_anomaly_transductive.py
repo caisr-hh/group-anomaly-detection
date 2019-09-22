@@ -162,29 +162,58 @@ class IndividualAnomalyTransductive:
         return pd.DataFrame(index=self.T, data=stats, columns=["strangeness", "deviation", "pvalue"])
 
     # ===========================================
-    def plot_deviations(self, figsize=None, savefig=None):
+    def plot_deviations(self, figsize=None, savefig=None, plots=["data", "strangeness", "pvalue", "deviation", "threshold"]):
         '''Plots the anomaly score, deviation level and p-value, over time.
         '''
 
         register_matplotlib_converters()
-        fig, (ax0, ax1) = plt.subplots(2, sharex="row", figsize=figsize)
 
-        ax0.set_title("Strangeness scores over time")
-        ax0.set_xlabel("Time")
-        ax0.set_ylabel("Strangeness score")
-        ax0.plot(self.T, self.S)
+        plots, nb_axs, i = list(set(plots)), 0, 0
+        if "data" in plots:
+            nb_axs += 1
+        if "strangeness" in plots:
+            nb_axs += 1
+        if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
+            nb_axs += 1
 
-        ax1.set_title("Deviation level and p-values over time")
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Deviation level")
-        #ax1.scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
-        ax1.plot(self.T, self.M, label="deviation")
-        ax1.axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
-        ax1.legend()
+        print("nb_axs", nb_axs)
+
+        fig, axes = plt.subplots(nb_axs, sharex="row", figsize=figsize)
+        if not isinstance(axes, (np.ndarray) ):
+            axes = np.array([axes])
+
+        if "data" in plots:
+            axes[i].set_title("Data")
+            axes[i].set_xlabel("Time")
+            axes[i].set_ylabel("Feature 0")
+            axes[i].plot(self.df.index, self.df.values[:, 0])
+            i += 1
+
+        if "strangeness" in plots:
+            axes[i].set_xlabel("Time")
+            axes[i].set_ylabel("Strangeness")
+            axes[i].plot(self.T, self.S)
+            i += 1
+
+        if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
+            axes[i].set_xlabel("Time")
+            axes[i].set_ylabel("Deviation")
+
+            if "pvalue" in plots:
+                axes[i].scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
+
+            if "deviation" in plots:
+                axes[i].plot(self.T, self.M, label="Deviation")
+
+            if "threshold" in plots:
+                axes[i].axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
+
+            axes[i].legend()
 
         fig.autofmt_xdate()
 
         if savefig is None:
+            plt.draw()
             plt.show()
         else:
             figpathname = utils.create_directory_from_path(savefig)
