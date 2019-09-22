@@ -154,8 +154,6 @@ class IndividualAnomalyInductive:
         if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
             nb_axs += 1
 
-        print("nb_axs", nb_axs)
-
         fig, axes = plt.subplots(nb_axs, sharex="row", figsize=figsize)
         if not isinstance(axes, (np.ndarray) ):
             axes = np.array([axes])

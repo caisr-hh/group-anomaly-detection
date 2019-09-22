@@ -33,7 +33,7 @@ class IndividualAnomalyTransductive:
         Threshold in [0,1] on the deviation level
     '''
 
-    def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6, ref_group="month", external_percentage=0.3):
+    def __init__(self, w_martingale=15, non_conformity="median", k=20, dev_threshold=0.6, ref_group=["season-of-year"], external_percentage=0.3):
         utils.validate_individual_deviation_params(w_martingale, non_conformity, k, dev_threshold, ref_group)
 
         self.w_martingale = w_martingale
@@ -175,8 +175,6 @@ class IndividualAnomalyTransductive:
             nb_axs += 1
         if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
             nb_axs += 1
-
-        print("nb_axs", nb_axs)
 
         fig, axes = plt.subplots(nb_axs, sharex="row", figsize=figsize)
         if not isinstance(axes, (np.ndarray) ):
