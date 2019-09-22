@@ -1,5 +1,5 @@
 # Other files from the project
-./examples/test.py
+examples/test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
