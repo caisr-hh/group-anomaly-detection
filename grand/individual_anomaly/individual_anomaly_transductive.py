@@ -50,8 +50,11 @@ class IndividualAnomalyTransductive:
         self.mart = 0
         self.marts = [0, 0, 0]
 
-        self.df = pd.DataFrame( data = [], index = [] )
+        self.df = pd.DataFrame(index=[], data=[])
         self.externals = []
+
+        self.df_init = pd.DataFrame(index=[], data=[])
+        self.externals_init = []
 
     # ===========================================
     def predict(self, dtime, x, external=None):
@@ -96,6 +99,20 @@ class IndividualAnomalyTransductive:
         return DeviationContext(strangeness, pval, deviation, is_deviating)
 
     # ===========================================
+    def init(self, data):
+        # TODO: check if data is a list of elements i with (t_i, x_i, [external_i])
+        # TODO: and that if ref_group="external" then external_i should be specified (i.e. len(data[0]) == 3)
+        if len(data[0]) == 2:
+            times, X = list(zip(*data))
+            externals = []
+
+        elif len(data[0]) == 3:
+            times, X, externals = list(zip(*data))
+
+        self.df_init = pd.DataFrame(index=times, data=X)
+        self.externals_init = externals
+
+    # ===========================================
     def _fit(self, dtime, x, external=None):
         ''' Private method for internal use only.
         Constructs a reference dataset based on historical data and the specified ref_group criteria
@@ -105,14 +122,15 @@ class IndividualAnomalyTransductive:
         if self.ref_group == "external":
             if external is None:
                 raise InputValidationError("When ref_group is set to 'external', the parameter external must be specified.")
-            current = external
-            historical = np.array(self.externals)
 
-            k = int( len(self.df) * self.external_percentage )
-            ids = np.argsort( np.abs(historical - current) )[:k]
-            X = self.df.iloc[ids].values
+            all_externals = np.array( list(self.externals_init) + list(self.externals) )
+            all_X = np.array( list(self.df_init.values) + list(self.df.values) )
+
+            k = int( len(all_externals) * self.external_percentage )
+            ids = np.argsort( np.abs(all_externals - external) )[:k]
+            X = all_X[ids]
         else:
-            df_sub = self.df
+            df_sub = self.df.append(self.df_init)
             for criterion in self.ref_group:
                 current = dt2num(dtime, criterion)
                 historical = np.array([dt2num(dt, criterion) for dt in df_sub.index])
