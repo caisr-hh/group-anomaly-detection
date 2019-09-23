@@ -7,7 +7,7 @@ __author__ = "Mohamed-Rafik Bouguelia"
 __license__ = "MIT"
 __email__ = "mohamed-rafik.bouguelia@hh.se"
 
-from grand.conformal import pvalue, Strangeness
+from grand.conformal import get_strangeness
 from grand.utils import DeviationContext, InputValidationError, append_to_df, dt2num
 from grand import utils
 import matplotlib.pylab as plt, pandas as pd, numpy as np
@@ -43,8 +43,7 @@ class IndividualAnomalyTransductive:
         self.ref_group = ref_group
         self.external_percentage = external_percentage
 
-        self.strg = Strangeness(non_conformity, k)
-        self.scores = []
+        self.strg = get_strangeness(non_conformity, k)
         self.T, self.S, self.P, self.M = [], [], [], []
 
         self.mart = 0
@@ -89,7 +88,7 @@ class IndividualAnomalyTransductive:
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
 
-        pval = pvalue(strangeness, self.scores)
+        pval = self.strg.pvalue(strangeness)
         self.P.append(pval)
 
         deviation = self._update_martingale(pval)
@@ -143,7 +142,6 @@ class IndividualAnomalyTransductive:
             X = [x]
 
         self.strg.fit(X)
-        self.scores = self.strg.get_fit_scores()
 
         self.df = append_to_df(self.df, dtime, x)
         self.externals.append(external)

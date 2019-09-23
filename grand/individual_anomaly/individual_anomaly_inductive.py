@@ -7,7 +7,7 @@ __author__ = "Mohamed-Rafik Bouguelia"
 __license__ = "MIT"
 __email__ = "mohamed-rafik.bouguelia@hh.se"
 
-from grand.conformal import pvalue, Strangeness
+from grand.conformal import get_strangeness
 from grand.utils import DeviationContext, append_to_df
 from grand import utils
 import matplotlib.pylab as plt, pandas as pd, numpy as np
@@ -41,8 +41,7 @@ class IndividualAnomalyInductive:
         self.k = k
         self.dev_threshold = dev_threshold
         
-        self.strg = Strangeness(non_conformity, k)
-        self.scores = []
+        self.strg = get_strangeness(non_conformity, k)
         self.T, self.S, self.P, self.M = [], [], [], []
         
         self.mart = 0
@@ -64,8 +63,6 @@ class IndividualAnomalyInductive:
         '''
         
         self.strg.fit(X)
-        self.scores = self.strg.get_fit_scores()
-        
         return self
     
     # ===========================================
@@ -98,7 +95,7 @@ class IndividualAnomalyInductive:
         strangeness = self.strg.get(x)
         self.S.append(strangeness)
         
-        pval = pvalue(strangeness, self.scores)
+        pval = self.strg.pvalue(strangeness)
         self.P.append(pval)
         
         deviation = self._update_martingale(pval)

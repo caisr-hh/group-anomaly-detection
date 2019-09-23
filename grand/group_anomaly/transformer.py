@@ -7,7 +7,6 @@ __license__ = "MIT"
 __email__ = "mohamed-rafik.bouguelia@hh.se"
 
 import numpy as np
-from grand.conformal import pvalue
 
 
 class Transformer:
@@ -54,6 +53,7 @@ class Transformer:
         if len(self.X) < self.MIN_HISTORY_SIZE:
             p_arr = [0.5 for _ in range(len(x))]
         else:
+            pvalue = lambda val, values: len([1 for v in values if v > val]) / len(values)
             p_arr = [pvalue(x[i], self.X[:, i]) for i in range(len(x))]
 
         self.P = np.vstack([self.P, p_arr])
