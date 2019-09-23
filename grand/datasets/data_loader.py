@@ -41,6 +41,16 @@ class DataCSVs:
         return len(self.files_csv)
         
     # -------------------------------------
+    def normalize(self, with_mean=True, with_std=True):
+        if with_mean:
+            self.dfs = [df - df.mean() for df in self.dfs]
+
+        if with_std:
+            self.dfs = [df / df.std() for df in self.dfs]
+
+        return self
+
+    # -------------------------------------
     def stream(self):
         for dt in self.dates:
             x_units = []
