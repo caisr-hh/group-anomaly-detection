@@ -112,6 +112,8 @@ class IndividualAnomalyTransductive:
         self.df_init = pd.DataFrame(index=times, data=X)
         self.externals_init = externals
 
+        return self
+
     # ===========================================
     def _fit(self, dtime, x, external=None):
         ''' Private method for internal use only.

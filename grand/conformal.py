@@ -150,7 +150,7 @@ class StrangenessKNN:
             Average distance between x and its k-nearest-neighbours from X
         '''
         
-        dists = [np.linalg.norm(x - xx) for xx in self.X]
+        dists = [np.linalg.norm(x - xx) for xx in self.X if not (x is xx)]
         knn_dists = sorted(dists)[:self.k]
         mean_knn_dists = np.mean(knn_dists)
         return mean_knn_dists
