@@ -7,6 +7,8 @@ __license__ = "MIT"
 __email__ = "mohamed-rafik.bouguelia@hh.se"
 
 import numpy as np
+from scipy.stats import linregress
+from grand import utils
 
 
 class Transformer:
@@ -17,7 +19,11 @@ class Transformer:
         self.P = None
         self.MIN_HISTORY_SIZE = 10
 
-        # TODO: validate the parameter accepted strings for self.transformer
+        # TODO: validate the parameters (accepted strings) for self.transformer
+
+    def transform_all(self, X):
+        Z = np.array([self.transform(x) for x in X])
+        return Z
 
     def transform(self, x):
         if len(x) == 0 or self.transformer is None:
@@ -35,6 +41,19 @@ class Transformer:
         elif self.transformer in ["pvalue", "mean_pvalue"]:
             aggregate = (self.transformer == "mean_pvalue")
             return self.transform_pvalue(x, aggregate)
+
+        elif self.transformer in ["slope"]:
+            return self.transform_slope(x)
+
+        else:
+            raise utils.InputValidationError("transformer should be one of {}".format(["mean_normalize", "std_normalize", "mean_std_normalize", "slope", "pvalue", "mean_pvalue"]))
+
+
+    def transform_slope(self, x):
+        self.X = np.vstack([self.X, x])
+        if len(self.X) < self.w: return np.zeros(x.shape)
+        return np.array([ linregress(range(self.w), self.X[-self.w:, j])[0] for j in range(len(x)) ])
+
 
     def transform_normalize(self, x, with_mean=True, with_std=True):
         self.X = np.vstack([self.X, x])
@@ -68,7 +87,3 @@ class Transformer:
                 z += [1. - pvalues[-1]] if len(pvalues) >= 1 else [0.5]
 
         return z
-
-    def transform_all(self, X):
-        Z = np.array([self.transform(x) for x in X])
-        return Z

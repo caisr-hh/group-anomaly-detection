@@ -12,7 +12,7 @@ from .transformer import Transformer
 from grand import IndividualAnomalyInductive
 from grand.utils import DeviationContext, append_to_df, TestUnitError, NoRefGroupError
 from grand import utils
-import pandas as pd, matplotlib.pylab as plt
+import pandas as pd, matplotlib.pylab as plt, numpy as np
 from pandas.plotting import register_matplotlib_converters
 
 class GroupAnomaly:
@@ -114,41 +114,111 @@ class GroupAnomaly:
         return deviations
         
     # ===========================================
-    def plot_deviations(self, figsize=None, savefig=None):
-        '''Plots the anomaly score, deviation level and p-value, over time.
-        '''
+    def plot_deviations(self, figsize=None, savefig=None, plots=["data", "transformed_data", "strangeness", "deviation", "threshold"], debug=False):
+        '''Plots the anomaly score, deviation level and p-value, over time.'''
+
         register_matplotlib_converters()
 
-        if self.transformer == "mean_pvalue":
-            fig, (ax0, ax2) = plt.subplots(2, figsize=figsize)
-        else:
-            fig, (ax0, ax1, ax2) = plt.subplots(3, figsize=figsize)
+        if self.transformer is None and "transformed_data" in plots:
+            plots.remove("transformed_data")
 
-        ax0.set_title("Strangeness scores over time")
-        ax0.set_xlabel("Time")
-        ax0.set_ylabel("Strangeness score")
-        for uid in self.ids_target_units:
-            T, S = self.detectors[uid].T, self.detectors[uid].S
-            ax0.plot(T, S)
+        plots, nb_axs, i = list(set(plots)), 0, 0
+        if "data" in plots:
+            nb_axs += 1
+        if "transformed_data" in plots:
+            nb_axs += 1
+        if "strangeness" in plots:
+            nb_axs += 1
+        if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
+            nb_axs += 1
 
-        if self.transformer != "mean_pvalue":
-            ax1.set_title("Deviation level and p-values over time")
-            ax1.set_xlabel("Time")
-            ax1.set_ylabel("Deviation level")
+        fig, axs = plt.subplots(nb_axs, sharex="row", figsize=figsize)
+        if not isinstance(axs, (np.ndarray) ): axs = np.array([axs])
+
+        if "data" in plots:
+            axs[i].set_xlabel("Time")
+            axs[i].set_ylabel("Feature 0")
+            for uid in self.ids_target_units:
+                df = self.dfs_original[uid]
+                axs[i].plot(df.index, df.values[:, 0], label="Unit {}".format(uid))
+            axs[i].legend()
+            i += 1
+
+        if "transformed_data" in plots:
+            axs[i].set_xlabel("Time")
+            axs[i].set_ylabel("Trans. Feature 0")
+            for uid in self.ids_target_units:
+                df = self.dfs[uid]
+                axs[i].plot(df.index, df.values[:, 0], label="Unit {}".format(uid))
+                if debug and uid == self.ids_target_units[-1]:
+                    T, representatives = self.detectors[uid].T, self.detectors[uid].representatives
+                    axs[i].plot(T, np.array(representatives)[:, 0], label="Representative", ls="--", color="black")
+
+            axs[i].legend()
+            i += 1
+
+        if "strangeness" in plots:
+            axs[i].set_xlabel("Time")
+            axs[i].set_ylabel("Strangeness")
+            for uid in self.ids_target_units:
+                T, S = self.detectors[uid].T, self.detectors[uid].S
+                axs[i].plot(T, S, label="Unit {}".format(uid))
+            axs[i].legend()
+            i += 1
+
+        if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
+            axs[i].set_xlabel("Time")
+            axs[i].set_ylabel("Deviation")
+            axs[i].set_ylim(0, 1)
             for uid in self.ids_target_units:
                 T, P, M = self.detectors[uid].T, self.detectors[uid].P, self.detectors[uid].M
-                # ax1.scatter(T, P, alpha=0.25, marker=".")
-                ax1.plot(T, M, label="Unit"+str(uid))
-            ax1.axhline(y=self.dev_threshold, color='r', linestyle='--')
-            ax1.legend()
+                if "pvalue" in plots:
+                    axs[i].scatter(T, P, alpha=0.25, marker=".", color="green")
+                if "deviation" in plots:
+                    axs[i].plot(T, M)
+                if "threshold" in plots:
+                    axs[i].axhline(y=self.dev_threshold, color='r', linestyle='--')
 
-        ax2.set_title("Transformed data")
-        ax2.set_xlabel("Time")
-        ax2.set_ylabel("Feature 0")
-        for uid in self.ids_target_units:
-            df = self.dfs[uid]
-            ax2.plot(df.index, df.values[:, 0], marker=".", label="unit {} var {}".format(uid, 0))
-        ax2.legend()
+        fig.autofmt_xdate()
+
+        if savefig is None:
+            plt.show()
+        else:
+            figpathname = utils.create_directory_from_path(savefig)
+            plt.savefig(figpathname)
+
+    # ===========================================
+    def plot_explanations(self, uid, from_time, to_time, figsize=None, savefig=None, nb_features=4):
+        detector = self.detectors[uid]
+        sub_dfs_ori = [self.dfs_original[uuid][from_time: to_time] for uuid in range(self.nb_units)]
+        sub_dfs = [self.dfs[uuid][from_time: to_time] for uuid in range(self.nb_units)]
+        sub_representatives_df = pd.DataFrame(index=detector.T, data=detector.representatives)[from_time: to_time]
+        sub_diffs_df = pd.DataFrame(index=detector.T, data=detector.diffs)[from_time: to_time]
+        deviation_signature = np.mean(sub_diffs_df.values, axis=0) # TODO: use this later to find similar deviations to this one
+
+        nb_features = min(nb_features, sub_diffs_df.values.shape[1])
+        features_scores = np.array([np.abs(col).mean() for col in sub_diffs_df.values.T])
+        features_scores = 100 * features_scores / features_scores.sum()
+        features_ids = np.argsort(features_scores)[-nb_features:][::-1]
+
+        fig, axs = plt.subplots(nb_features, 2, sharex="row", figsize=figsize)
+        if nb_features == 1: axs = np.array([axs]).reshape(1, -1)
+
+        for i, j in enumerate(features_ids):
+            if i == 0: axs[i][0].set_title("Original data")
+            axs[i][0].set_xlabel("Time")
+            axs[i][0].set_ylabel("Feature {0}\n(Score: {1:.1f})".format(j, features_scores[j]))
+            for df_ori in sub_dfs_ori: axs[i][0].plot(df_ori.index, df_ori.values[:, j], color="silver")
+            axs[i][0].plot(sub_dfs_ori[uid].index, sub_dfs_ori[uid].values[:, j], color="red", label="Unit {}".format(uid))
+            axs[i][0].legend()
+
+            if i == 0: axs[i][1].set_title("Transformed data")
+            axs[i][1].set_xlabel("Time")
+            axs[i][1].set_ylabel("Feature {}".format(j))
+            for df in sub_dfs: axs[i][1].plot(df.index, df.values[:, j], color="silver")
+            axs[i][1].plot(sub_representatives_df.index, sub_representatives_df.values[:, j], color="grey", linestyle='--')
+            axs[i][1].plot(sub_dfs[uid].index, sub_dfs[uid].values[:, j], color="red", label="Unit {}".format(uid))
+            axs[i][1].legend()
 
         fig.autofmt_xdate()
 

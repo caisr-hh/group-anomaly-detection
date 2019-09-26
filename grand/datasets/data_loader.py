@@ -46,7 +46,9 @@ class DataCSVs:
             self.dfs = [df - df.mean() for df in self.dfs]
 
         if with_std:
-            self.dfs = [df / df.std() for df in self.dfs]
+            stds = [df.std() for df in self.dfs]
+            for std in stds: std[std==0] = 1
+            self.dfs = [df / std for df, std in zip(self.dfs, stds)]
 
         return self
 
@@ -94,8 +96,10 @@ def load_vehicles():
     return loader('vehicles')
 
 
-def load_artificial(i):
-    return loader("toy" + str(int(i%8)))
+def load_artificial(i, smoothing=1):
+    data_loader = loader("toy" + str(int(i%8)))
+    data_loader.dfs = [df.rolling(window=smoothing).mean().dropna() for df in data_loader.dfs]
+    return data_loader
 
 
 def load_taxi():

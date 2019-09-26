@@ -36,7 +36,7 @@ class Strangeness:
         utils.validate_fit_input(X)
         self.X = X
 
-    def get(self, x):
+    def predict(self, x):
         utils.validate_is_fitted(self.is_fitted())
         utils.validate_get_input(x)
 
@@ -55,12 +55,13 @@ class StrangenessMedian(Strangeness):
     def fit(self, X):
         super().fit(X)
         self.med = np.median(X, axis=0)
-        self.scores = [self.get(x) for x in self.X]
+        self.scores = [self.predict(x)[0] for x in self.X]
 
-    def get(self, x):
-        super().get(x)
-        dist = np.linalg.norm(x - self.med)
-        return dist
+    def predict(self, x):
+        super().predict(x)
+        diff = x - self.med
+        dist = np.linalg.norm(diff)
+        return dist, diff, self.med
 
 
 class StrangenessKNN(Strangeness):
@@ -72,14 +73,18 @@ class StrangenessKNN(Strangeness):
 
     def fit(self, X):
         super().fit(X)
-        self.scores = [self.get(x) for x in self.X]
+        self.scores = [self.predict(xx)[0] for xx in self.X]
 
-    def get(self, x):
-        super().get(x)
-        dists = [np.linalg.norm(x - xx) for xx in self.X if not (x is xx)]
-        knn_dists = sorted(dists)[:self.k]
-        mean_knn_dists = np.mean(knn_dists)
-        return mean_knn_dists
+    def predict(self, x):
+        super().predict(x)
+        dists = np.array([np.linalg.norm(x - xx) for xx in self.X])
+        ids = np.argsort(dists)
+        ids = ids[1:self.k+1] if np.array_equal(x, self.X[ids[0]]) else ids[:self.k]
+
+        mean_knn_dists = np.mean(dists[ids])
+        representative = np.mean(np.array(self.X)[ids], axis=0)
+        diff = x - representative
+        return mean_knn_dists, diff, representative
 
 
 class StrangenessLOF(Strangeness):
@@ -97,7 +102,9 @@ class StrangenessLOF(Strangeness):
         self.lof.fit(X_)
         self.scores = -1 * self.lof.negative_outlier_factor_
 
-    def get(self, x):
-        super().get(x)
+    def predict(self, x):
+        super().predict(x)
         outlier_score = -1 * self.lof.score_samples([x])[0]
-        return outlier_score
+        med = np.median(self.X, axis=0) # FIXME: temporary hack
+        diff = x - med
+        return outlier_score, diff, med

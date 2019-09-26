@@ -38,6 +38,7 @@ def create_directory_from_path(pathname):
     return pathname
 
 # ===========================================
+# TODO add week-end
 def dt2num(dt, criterion):
         if criterion == "hour-of-day":
             return dt.hour

@@ -45,6 +45,7 @@ class IndividualAnomalyTransductive:
 
         self.strg = get_strangeness(non_conformity, k)
         self.T, self.S, self.P, self.M = [], [], [], []
+        self.representatives, self.diffs = [], []
 
         self.mart = 0
         self.marts = [0, 0, 0]
@@ -85,8 +86,10 @@ class IndividualAnomalyTransductive:
         self.T.append(dtime)
         self._fit(dtime, x, external)
 
-        strangeness = self.strg.get(x)
+        strangeness, diff, representative = self.strg.predict(x)
         self.S.append(strangeness)
+        self.diffs.append(diff)
+        self.representatives.append(representative)
 
         pval = self.strg.pvalue(strangeness)
         self.P.append(pval)
@@ -180,9 +183,8 @@ class IndividualAnomalyTransductive:
         return pd.DataFrame(index=self.T, data=stats, columns=["strangeness", "deviation", "pvalue"])
 
     # ===========================================
-    def plot_deviations(self, figsize=None, savefig=None, plots=["data", "strangeness", "pvalue", "deviation", "threshold"]):
-        '''Plots the anomaly score, deviation level and p-value, over time.
-        '''
+    def plot_deviations(self, figsize=None, savefig=None, plots=["data", "strangeness", "pvalue", "deviation", "threshold"], debug=False):
+        '''Plots the anomaly score, deviation level and p-value, over time.'''
 
         register_matplotlib_converters()
 
@@ -199,31 +201,33 @@ class IndividualAnomalyTransductive:
             axes = np.array([axes])
 
         if "data" in plots:
-            axes[i].set_title("Data")
             axes[i].set_xlabel("Time")
             axes[i].set_ylabel("Feature 0")
-            axes[i].plot(self.df.index, self.df.values[:, 0])
+            axes[i].plot(self.df.index, self.df.values[:, 0], label="Data")
+            if debug:
+                axes[i].plot(self.T, np.array(self.representatives)[:, 0], label="Representative")
+            axes[i].legend()
             i += 1
 
         if "strangeness" in plots:
             axes[i].set_xlabel("Time")
             axes[i].set_ylabel("Strangeness")
-            axes[i].plot(self.T, self.S)
+            axes[i].plot(self.T, self.S, label="Strangeness")
+            if debug:
+                axes[i].plot(self.T, np.array(self.diffs)[:, 0], label="Difference")
+            axes[i].legend()
             i += 1
 
         if any(s in ["pvalue", "deviation", "threshold"] for s in plots):
             axes[i].set_xlabel("Time")
             axes[i].set_ylabel("Deviation")
-
+            axes[i].set_ylim(0, 1)
             if "pvalue" in plots:
                 axes[i].scatter(self.T, self.P, alpha=0.25, marker=".", color="green", label="p-value")
-
             if "deviation" in plots:
                 axes[i].plot(self.T, self.M, label="Deviation")
-
             if "threshold" in plots:
                 axes[i].axhline(y=self.dev_threshold, color='r', linestyle='--', label="Threshold")
-
             axes[i].legend()
 
         fig.autofmt_xdate()
