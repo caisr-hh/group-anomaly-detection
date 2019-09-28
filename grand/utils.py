@@ -119,8 +119,9 @@ def validate_individual_deviation_params(w_martingale, non_conformity, k, dev_th
         raise InputValidationError("dev_threshold should be in [0, 1]. Given dev_threshold = {}".format(dev_threshold))
 
     strings = ["hour-of-day", "day-of-week", "day-of-month", "week-of-year", "month-of-year", "season-of-year"]
-    if (ref_group is not None) and (ref_group != "external") and (not isinstance(ref_group, (list, np.ndarray))):
-        raise InputValidationError("ref_group should be either a list containing one or many of {}, or the string 'external'. "
+    if (ref_group is not None) and (ref_group != "external") and (not isinstance(ref_group, (list, np.ndarray))) and (not callable(ref_group)):
+        raise InputValidationError("ref_group should be either a list containing one or many of {}, or the string 'external', "
+                                   "or a callable function(times, values, x)"
                                    "Given ref_group = '{}'".format(strings, ref_group))
 
         

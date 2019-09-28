@@ -135,6 +135,12 @@ class IndividualAnomalyTransductive:
             k = int( len(all_externals) * self.external_percentage )
             ids = np.argsort( np.abs(all_externals - external) )[:k]
             X = all_X[ids]
+        elif callable(self.ref_group):
+            df = self.df_init.append(self.df)
+            if len(df) == 0: X = []
+            else:
+                times, values = df.index.to_pydatetime(), df.values
+                X = self.ref_group(times, values, x)
         else:
             df_sub = self.df.append(self.df_init)
             for criterion in self.ref_group:
