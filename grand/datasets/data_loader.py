@@ -70,14 +70,14 @@ class DataCSVs:
             except: pass
 
     # -------------------------------------
-    def plot(self, icol=0, limit=10, figsize=None):
+    def plot(self, icol=0, max_units=6, figsize=None):
         register_matplotlib_converters()
         fig, ax = plt.subplots(figsize = figsize)
         ax.set_xlabel("Time")
         ax.set_ylabel("Feature {}".format(icol))
 
         for i, df in enumerate(self.dfs):
-            if i == limit: break
+            if i == max_units: break
             ax.plot(df.index, df.values[:, icol], label="Unit {}".format(i))
 
         plt.legend()

@@ -1,5 +1,7 @@
 # Other files from the project
-examples/test.py
+examples/test_individual_anomaly_inductive.py
+examples/test_individual_anomaly_transductive.py
+examples/test_group_anomaly.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

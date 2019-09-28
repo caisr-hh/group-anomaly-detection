@@ -44,8 +44,8 @@ class GroupAnomaly:
         Threshold in [0,1] on the deviation level
     '''
 
-    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15,
-                 non_conformity="median", k=20, dev_threshold=.6, transformer="pvalue", w_transform=30):
+    def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=20,
+                 dev_threshold=.6, transformer="pvalue", w_transform=30, columns=None):
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group
@@ -55,9 +55,10 @@ class GroupAnomaly:
         self.dev_threshold = dev_threshold
         self.transformer = transformer
         self.w_transform = w_transform
+        self.columns = columns
 
         self.dfs_original = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
-        self.dfs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ]
+        self.dfs = [ pd.DataFrame( data = [], index = [] ) for _ in range(nb_units) ] # FIXME: duplicates with self.detectors[i].df
         self.pg = PeerGrouping(self.w_ref_group)
         self.detectors = [ IndividualAnomalyInductive(w_martingale, non_conformity, k, dev_threshold) for _ in range(nb_units) ]
         self.transformers = [Transformer(w_transform, transformer) for _ in range(nb_units)]
@@ -114,6 +115,21 @@ class GroupAnomaly:
         return deviations
         
     # ===========================================
+    def get_similar_deviations(self, uid, from_time, to_time, k_devs=2, min_len=5, dev_threshold=None):
+        target_devsig = self.detectors[uid].get_deviation_signature(from_time, to_time)
+        deviations = [self.detectors[uuid].get_all_deviations(min_len, dev_threshold) for uuid in self.ids_target_units]
+
+        deviations = []
+        for uuid in self.ids_target_units:
+            deviations_uuid = self.detectors[uuid].get_all_deviations(min_len, dev_threshold)
+            deviations_uuid = [(devsig, p_from, p_to, uuid) for (devsig, p_from, p_to) in deviations_uuid]
+            deviations += deviations_uuid
+
+        dists = [np.linalg.norm(target_devsig - devsig) for (devsig, *_) in deviations]
+        ids = np.argsort(dists)[:k_devs]
+        return [deviations[id] for id in ids]
+
+    # ===========================================
     def plot_deviations(self, figsize=None, savefig=None, plots=["data", "transformed_data", "strangeness", "deviation", "threshold"], debug=False):
         '''Plots the anomaly score, deviation level and p-value, over time.'''
 
@@ -133,6 +149,7 @@ class GroupAnomaly:
             nb_axs += 1
 
         fig, axs = plt.subplots(nb_axs, sharex="row", figsize=figsize)
+        fig.autofmt_xdate()
         if not isinstance(axs, (np.ndarray) ): axs = np.array([axs])
 
         if "data" in plots:
@@ -179,8 +196,6 @@ class GroupAnomaly:
                 if "threshold" in plots:
                     axs[i].axhline(y=self.dev_threshold, color='r', linestyle='--')
 
-        fig.autofmt_xdate()
-
         if savefig is None:
             plt.show()
         else:
@@ -188,42 +203,68 @@ class GroupAnomaly:
             plt.savefig(figpathname)
 
     # ===========================================
-    def plot_explanations(self, uid, from_time, to_time, figsize=None, savefig=None, nb_features=4):
+    def plot_explanations(self, uid, from_time, to_time, figsize=None, savefig=None, k_features=4):
+        # TODO: validate if the period (from_time, to_time) has data before plotting
         detector = self.detectors[uid]
         sub_dfs_ori = [self.dfs_original[uuid][from_time: to_time] for uuid in range(self.nb_units)]
         sub_dfs = [self.dfs[uuid][from_time: to_time] for uuid in range(self.nb_units)]
         sub_representatives_df = pd.DataFrame(index=detector.T, data=detector.representatives)[from_time: to_time]
         sub_diffs_df = pd.DataFrame(index=detector.T, data=detector.diffs)[from_time: to_time]
-        deviation_signature = np.mean(sub_diffs_df.values, axis=0) # TODO: use this later to find similar deviations to this one
 
-        nb_features = min(nb_features, sub_diffs_df.values.shape[1])
+        nb_features = sub_diffs_df.values.shape[1]
+        if (self.columns is None) or (len(self.columns) != nb_features):
+            self.columns = ["Feature {}".format(j) for j in range(nb_features)]
+        self.columns = np.array(self.columns)
+
         features_scores = np.array([np.abs(col).mean() for col in sub_diffs_df.values.T])
         features_scores = 100 * features_scores / features_scores.sum()
-        features_ids = np.argsort(features_scores)[-nb_features:][::-1]
+        k_features = min(k_features, nb_features)
+        selected_features_ids = np.argsort(features_scores)[-k_features:][::-1]
+        selected_features_names = self.columns[selected_features_ids]
+        selected_features_scores = features_scores[selected_features_ids]
 
-        fig, axs = plt.subplots(nb_features, 2, sharex="row", figsize=figsize)
-        if nb_features == 1: axs = np.array([axs]).reshape(1, -1)
+        fig, axs = plt.subplots(k_features, 2, figsize=figsize)
+        fig.autofmt_xdate()
+        fig.suptitle("Ranked features of Unit {}\nFrom {} to {}".format(uid, from_time, to_time))
+        if k_features == 1: axs = np.array([axs]).reshape(1, -1)
 
-        for i, j in enumerate(features_ids):
+        for i, (j, name, score) in enumerate(zip(selected_features_ids, selected_features_names, selected_features_scores)):
             if i == 0: axs[i][0].set_title("Original data")
             axs[i][0].set_xlabel("Time")
-            axs[i][0].set_ylabel("Feature {0}\n(Score: {1:.1f})".format(j, features_scores[j]))
+            axs[i][0].set_ylabel("{0}\n(Score: {1:.1f})".format(name, score))
             for df_ori in sub_dfs_ori: axs[i][0].plot(df_ori.index, df_ori.values[:, j], color="silver")
-            axs[i][0].plot(sub_dfs_ori[uid].index, sub_dfs_ori[uid].values[:, j], color="red", label="Unit {}".format(uid))
-            axs[i][0].legend()
+            axs[i][0].plot(sub_dfs_ori[uid].index, sub_dfs_ori[uid].values[:, j], color="red")
 
             if i == 0: axs[i][1].set_title("Transformed data")
             axs[i][1].set_xlabel("Time")
-            axs[i][1].set_ylabel("Feature {}".format(j))
+            axs[i][1].set_ylabel("{}".format(name))
             for df in sub_dfs: axs[i][1].plot(df.index, df.values[:, j], color="silver")
-            axs[i][1].plot(sub_representatives_df.index, sub_representatives_df.values[:, j], color="grey", linestyle='--')
-            axs[i][1].plot(sub_dfs[uid].index, sub_dfs[uid].values[:, j], color="red", label="Unit {}".format(uid))
-            axs[i][1].legend()
+            axs[i][1].plot(sub_representatives_df.index, sub_representatives_df.values[:, j], color="black", linestyle='--')
+            axs[i][1].plot(sub_dfs[uid].index, sub_dfs[uid].values[:, j], color="red")
 
-        fig.autofmt_xdate()
+        figg = None
+        if k_features > 1:
+            figg, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+            figg.suptitle("Top 2 ranked features of Unit {}\nFrom {} to {}".format(uid, from_time, to_time))
+            (j1, j2) , (nm1, nm2), (s1, s2) = selected_features_ids[:2], selected_features_names[:2], selected_features_scores[:2]
+
+            ax1.set_title("Original data")
+            ax1.set_xlabel("{0}\n(Score: {1:.1f})".format(nm1, s1))
+            ax1.set_ylabel("{0}\n(Score: {1:.1f})".format(nm2, s2))
+            for df_ori in sub_dfs_ori: ax1.scatter(df_ori.values[:, j1], df_ori.values[:, j2], color="silver", marker=".")
+            ax1.scatter(sub_dfs_ori[uid].values[:, j1], sub_dfs_ori[uid].values[:, j2], color="red", marker=".", label="Unit {}".format(uid))
+            ax1.legend()
+
+            ax2.set_title("Transformed data")
+            ax2.set_xlabel("{0}\n(Score: {1:.1f})".format(nm1, s1))
+            ax2.set_ylabel("{0}\n(Score: {1:.1f})".format(nm2, s2))
+            for df in sub_dfs: ax2.scatter(df.values[:, j1], df.values[:, j2], color="silver", marker=".")
+            ax2.scatter(sub_dfs[uid].values[:, j1], sub_dfs[uid].values[:, j2], color="red", marker=".", label="Unit {}".format(uid))
+            ax2.legend()
 
         if savefig is None:
             plt.show()
         else:
             figpathname = utils.create_directory_from_path(savefig)
-            plt.savefig(figpathname)
+            fig.savefig(figpathname)
+            if figg is not None: figg.savefig(figpathname + "_2.png")
