@@ -45,7 +45,7 @@ class GroupAnomaly:
     '''
 
     def __init__(self, nb_units, ids_target_units, w_ref_group="7days", w_martingale=15, non_conformity="median", k=20,
-                 dev_threshold=.6, transformer="pvalue", w_transform=30, columns=None):
+                 dev_threshold=.6, transformer=None, w_transform=30, columns=None):
         self.nb_units = nb_units
         self.ids_target_units = ids_target_units
         self.w_ref_group = w_ref_group

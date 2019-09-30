@@ -139,8 +139,9 @@ class IndividualAnomalyTransductive:
             df = self.df_init.append(self.df)
             if len(df) == 0: X = []
             else:
-                times, values = df.index.to_pydatetime(), df.values
-                X = self.ref_group(times, values, x)
+                history_times, history_data = df.index.to_pydatetime(), df.values
+                current_time, current_data = dtime, x
+                X = self.ref_group(history_times, history_data, current_time, current_data)
         else:
             df_sub = self.df.append(self.df_init)
             for criterion in self.ref_group:

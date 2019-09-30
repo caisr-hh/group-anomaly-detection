@@ -99,6 +99,7 @@ def load_vehicles():
 def load_artificial(i, smoothing=1):
     data_loader = loader("toy" + str(int(i%8)))
     data_loader.dfs = [df.rolling(window=smoothing).mean().dropna() for df in data_loader.dfs]
+    data_loader.dfs[2][:] *= 2  # double the values from Unit 2
     return data_loader
 
 

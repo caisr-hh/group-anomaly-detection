@@ -263,6 +263,7 @@ class IndividualAnomalyInductive:
             axs = np.array([axs])
 
         for i, (j, name, score) in enumerate(zip(selected_features_ids, selected_features_names, selected_features_scores)):
+            print("{0}, score: {1:.2f}%".format(name, score))
             axs[i].set_xlabel("Time")
             axs[i].set_ylabel("{0}\n(Score: {1:.1f})".format(name, score))
             axs[i].plot(sub_representatives_df_pad.index, sub_representatives_df_pad.values[:, j], color="grey", linestyle='--')
@@ -280,10 +281,11 @@ class IndividualAnomalyInductive:
             ax1.set_ylabel("{0}\n(Score: {1:.1f})".format(nm2, s2))
 
             self.strg.X = np.array(self.strg.X)
-            ax1.scatter(self.strg.X[:, j1], self.strg.X[:, j2], color="silver", marker=".")
-            ax1.scatter(sub_df_before.values[:, j1], sub_df_before.values[:, j2], color="green", marker=".")
-            ax1.scatter(sub_df_after.values[:, j1], sub_df_after.values[:, j2], color="lime", marker=".")
-            ax1.scatter(sub_df.values[:, j1], sub_df.values[:, j2], color="red", marker=".")
+            ax1.scatter(self.strg.X[:, j1], self.strg.X[:, j2], color="silver", marker=".", label="Reference Data")
+            ax1.scatter(sub_df_before.values[:, j1], sub_df_before.values[:, j2], color="green", marker=".", label="Before Selected Period")
+            ax1.scatter(sub_df_after.values[:, j1], sub_df_after.values[:, j2], color="lime", marker=".", label="After Selected Period")
+            ax1.scatter(sub_df.values[:, j1], sub_df.values[:, j2], color="red", marker=".", label="Selected Period")
+            ax1.legend()
 
         if savefig is None:
             plt.show()
